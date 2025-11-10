@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const apiController = require('../controllers/apiController');
 const commentController = require('../controllers/commentController');
+const chapController = require('../controllers/chapController');
 const multer = require('multer');
 const path = require('path');
 
@@ -33,26 +34,26 @@ router.put('/story/:id/thumbnail', upload.single('thumbnail'), apiController.upd
 router.delete('/story/:id', apiController.deleteStory);
 
 // ==================== CHAPTER ====================
-router.get('/story/:id/chapters', apiController.getChaptersByStory);
-router.post('/chapter/new', authMiddleware, apiController.createChapter);
-router.get('/chapter/:id', apiController.getChapter);
-router.get('/chapters/max', apiController.getMaxPageChapter);
-router.put('/chapter/:id', authMiddleware, apiController.updateChapter);
-router.delete('/chapter/:id', authMiddleware, apiController.deleteChapter);
-router.put("/chapters/reorder", apiController.reorderChapters);
-router.put('/chapter/:id/control', authMiddleware, apiController.updateChapterControl);
-router.get("/story/:storyId/chapters/published", apiController.getPublishedChapterCount);
-router.get("/story/:storyId/chapters/count", apiController.getAllChapterCount);
+router.get('/story/:id/chapters', chapController.getChaptersByStory);
+router.post('/chapter/new', authMiddleware, chapController.createChapter);
+router.get('/chapter/:id', chapController.getChapter);
+router.get('/chapters/max', chapController.getMaxPageChapter);
+router.put('/chapter/:id', authMiddleware, chapController.updateChapter);
+router.delete('/chapter/:id', authMiddleware, chapController.deleteChapter);
+router.put("/chapters/reorder", chapController.reorderChapters);
+router.put('/chapter/:id/control', authMiddleware, chapController.updateChapterControl);
+router.get("/story/:storyId/chapters/published", chapController.getPublishedChapterCount);
+router.get("/story/:storyId/chapters/count", chapController.getAllChapterCount);
 
 // ==================== VIEW ====================
-router.post("/chapter/view", apiController.addChapterView);
-router.get("/chapter/:chapterId/views", apiController.getChapterViews);
-router.get("/story/:storyId/views", apiController.getStoryViews);
+router.post("/chapter/view", chapController.addChapterView);
+router.get("/chapter/:chapterId/views", chapController.getChapterViews);
+router.get("/story/:storyId/views", chapController.getStoryViews);
 // ==================== VOTE ====================
-router.post('/chapter/vote', apiController.toggleVote);
-router.get("/chapter/:chapterId/votes", apiController.getChapterVotes);
-router.get("/chapter/:chapterId/votes/user", apiController.getUserVoteStatus);
-router.get('/story/:storyId/votes', apiController.getTotalStoryVotes);
+router.post('/chapter/vote', chapController.toggleVote);
+router.get("/chapter/:chapterId/votes", chapController.getChapterVotes);
+router.get("/chapter/:chapterId/votes/user", chapController.getUserVoteStatus);
+router.get('/story/:storyId/votes', chapController.getTotalStoryVotes);
 // ==================== COMMENT ====================
 router.get("/chapter/:chapterId/comments", commentController.getCommentsByChapter);
 router.post("/chapter/comment/new", commentController.addComment);

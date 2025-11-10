@@ -114,7 +114,7 @@ function fillStoryChapterData(story, chapters) {
     chapters.forEach(chap => {
       const a = document.createElement("a");
       a.href = `/story/${story._id}/chapter/${chap._id}`;
-      a.textContent = `CHAP ${chap.chapter_number}: ${chap.title}`;
+      a.textContent = `${chap.title}`;
       a.classList.add("chapter-link");
       a.style.display = "block";
       a.style.padding = "8px";
