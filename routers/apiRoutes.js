@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const apiController = require('../controllers/apiController');
+const commentController = require('../controllers/commentController');
 const multer = require('multer');
 const path = require('path');
 
@@ -52,6 +53,14 @@ router.post('/chapter/vote', apiController.toggleVote);
 router.get("/chapter/:chapterId/votes", apiController.getChapterVotes);
 router.get("/chapter/:chapterId/votes/user", apiController.getUserVoteStatus);
 router.get('/story/:storyId/votes', apiController.getTotalStoryVotes);
+// ==================== COMMENT ====================
+router.get("/chapter/:chapterId/comments", commentController.getCommentsByChapter);
+router.post("/chapter/comment/new", commentController.addComment);
+router.put("/chapter/comment/edit", commentController.editComment);
+router.delete("/chapter/comment/:commentId", commentController.deleteComment);
+router.post("/chapter/comment/reply", commentController.addReply);
+router.put("/chapter/comment/reply/edit", commentController.editReply);
+router.delete("/chapter/comment/reply/:replyId", commentController.deleteReply);
 // ==================== FOLLOW ====================
 router.get("/library", authMiddleware, apiController.getLibraryStories);
 router.get('/story/follow-status/:storyId', authMiddleware, apiController.getFollowStatus);
@@ -65,5 +74,6 @@ router.get('/logout', apiController.logout);
 router.post('/register', apiController.register);
 router.post('/login', apiController.login);
 router.get('/user/account-info', authMiddleware, apiController.getAccountInfo);
+
 
 module.exports = router;

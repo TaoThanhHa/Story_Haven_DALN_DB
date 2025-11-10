@@ -22,11 +22,10 @@
     </div>
   </nav>
 
-  <!-- Nội dung -->
+  <!-- Nội dung chương -->
   <div class="container mt-5 pt-5">
     <div class="box-infor">
       <h2 class="tieu-de text-center mb-4"></h2>
-
       <div class="d-flex justify-content-center border-bottom pb-3 mb-3">
         <div class="me-4 text-muted">
           <i class="fas fa-eye me-1"></i><span id="viewCount">0</span>
@@ -35,11 +34,10 @@
           <i class="fas fa-star me-1"></i><span id="voteCount">0</span>
         </div>
       </div>
-
       <div class="noi-dung fs-6 lh-lg"></div>
     </div>
 
-    <!-- Điều khiển -->
+    <!-- Điều khiển chuyển chương -->
     <div class="d-flex justify-content-between my-4">
       <button onclick="backChapter()" class="btn btn-outline-dark">
         <i class="fas fa-arrow-left me-1"></i> Chương trước
@@ -61,26 +59,25 @@
   <!-- Bình luận -->
   <div class="container my-5">
     <h4 class="fw-bold mb-3">Bình luận</h4>
-    <div class="box-cmt">
-      <form id="commentForm" class="row g-2 mb-3">
-        <div class="col-10">
-          <textarea id="commentInput" class="form-control" placeholder="Nhập bình luận của bạn..." required></textarea>
-        </div>
-        <div class="col-2 d-grid">
-          <button type="submit" class="btn btn-success">
-            <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
-      </form>
 
-      <div id="commentsList">
-        <h5 class="mb-3">Các bình luận:</h5>
-        <ul id="comments" class="list-group"></ul>
-      </div>
+    <div class="box-cmt mb-3 d-flex align-items-start">
+      <img src="<%= user ? user.avatar || '/images/default-avatar.png' : '/images/default-avatar.png' %>" 
+           style="width:40px;height:40px;border-radius:50%;" class="me-2">
+      <form id="commentForm" class="flex-grow-1 d-flex">
+        <textarea id="commentInput" class="form-control me-2" placeholder="Nhập bình luận..." required></textarea>
+        <button type="submit" class="btn btn-success"><i class="fas fa-paper-plane"></i></button>
+      </form>
     </div>
+
+    <div id="commentsList"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/javascript/Chapter.js"></script>
+  <script src="/javascript/Comments.js"></script>
+
+  <script>
+    window.currentUserId = "<%= user ? user._id : '' %>";
+  </script>
 </body>
 </html>

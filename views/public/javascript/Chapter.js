@@ -1,4 +1,3 @@
-// === MENU TOGGLE ===
 const menuToggle = document.querySelector(".fa");
 const menuContainer = document.querySelector(".menu");
 if (menuToggle && menuContainer) {
@@ -24,17 +23,9 @@ async function initializeChapterPage() {
     STORYID = pathSegments[2];
     CHAPTERCURRENT = pathSegments[4];
 
-    // Lấy dữ liệu chương và truyện
     await fetchStoryChapterData(STORYID, CHAPTERCURRENT);
-
-    // Lấy trạng thái vote của user và cập nhật vote count
-    // Gọi lại mỗi khi CHAPTERCURRENT thay đổi
     checkUserVote(CHAPTERCURRENT); // Hàm này sẽ gọi updateChapterVoteCount
-    
-    // Cập nhật tổng view live
     updateTotalStoryViews(STORYID);
-
-    // Cập nhật lượt xem chapter hiện tại
     updateChapterView(CHAPTERCURRENT);
   }
 }
@@ -183,12 +174,6 @@ async function updateTotalStoryViews(storyId) {
 }
 
 // === VOTE LOGIC ===
-// Biến VoteBtn cần được lấy lại mỗi khi CHAPTERCURRENT thay đổi
-// hoặc đảm bảo rằng nó luôn tham chiếu đến nút vote của chương hiện tại
-// Trong trường hợp này, vì VoteBtn là một phần tử cố định trên DOM (có ID là "Vote"),
-// việc lấy nó một lần khi DOMContentLoaded là đủ.
-// Vấn đề chính là CHAPTERCURRENT thay đổi nhưng logic cập nhật trạng thái vote
-// không được gọi lại.
 const VoteBtn = document.getElementById("Vote");
 
 if (VoteBtn) {
