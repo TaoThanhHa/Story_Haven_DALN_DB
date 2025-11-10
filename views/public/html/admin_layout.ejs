@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Panel - Story Haven' %></title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <!-- CSS layout chính -->
+    <link rel="stylesheet" href="../css/admin_layout.css">
+
+    <!-- CSS riêng cho trang con -->
+    <% if (typeof pageCss !== 'undefined' && pageCss) { %>
+        <link rel="stylesheet" href="/css/<%- pageCss %>">
+    <% } %>
+</head>
+
+<body data-user-id="<%= user ? user._id : '' %>">
+    <div class="admin-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="/images/Book Haven (3).png" alt="Logo" class="logo">
+                <h2>Admin Haven</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý Người dùng</a></li>
+                    <li><a href="/admin/stories"><i class="fas fa-book"></i> Quản lý Truyện</a></li>
+                    <li><a href="/admin/comments"><i class="fas fa-comments"></i> Quản lý Bình luận</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="main-content">
+            <header class="navbar">
+                <div class="navbar-left">
+                    <button class="toggle-sidebar" aria-label="Toggle Sidebar"><i class="fas fa-bars"></i></button>
+                    <h3><%- typeof pageTitle !== 'undefined' ? pageTitle : 'Chào mừng đến với Admin Panel' %></h3>
+                </div>
+                <div class="navbar-right">
+                    <span class="admin-name"><i class="fas fa-user-circle"></i> <%= user ? user.username : 'Admin' %></span>
+                    <form id="logout-form" action="/admin/logout" method="POST" style="display:inline;">
+                        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="content-area">
+                <% if (typeof pageBody !== 'undefined') { %>
+                    <%- include(pageBody) %>
+                <% } else { %>
+                    <p>Chưa có nội dung</p>
+                <% } %>
+            </main>
+        </div>
+    </div>
+
+    <!-- JS layout chính -->
+    <script src="/javascript/admin_layout.js"></script>
+
+    <!-- JS riêng cho trang con -->
+    <% if (typeof pageJs !== 'undefined' && pageJs) { %>
+        <script src="/javascript/<%- pageJs %>"></script>
+    <% } %>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo truyện mới</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="../css/Story.css" type="text/css">
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="header">
+    <a href="/my-story"><i class="fa fa-arrow-left"></i></a>
+    <button onclick="saveStory()">Lưu</button>
+  </div>
+
+  <!-- Content -->
+  <div class="body">
+    <div class="container">
+      <!-- Ảnh bìa -->
+      <div class="box-avata">
+        <div class="avata text-center">
+          <input type="file" id="image-upload" accept="image/*" style="display: none;">
+          <label for="image-upload">
+            <img class="img" id="preview-image" src="#" alt="Ấn vào đây">
+          </label>
+        </div>
+      </div>
+
+      <!-- Nội dung -->
+      <div class="box-box">
+
+        <!-- Box -->
+        <div class="box" id="box">
+          <!-- Tạo tác phẩm -->
+          <div class="story">
+            <p for="story-title">Tiêu đề:</p>
+            <input type="text" id="story-title" class="form-control"
+              placeholder="Nhập tiêu đề của truyện">
+
+            <p for="story-content">Mô tả:</p>
+            <textarea id="story-content" class="form-control"
+              placeholder="Viết mô tả của truyện ở đây"></textarea>
+
+            <p for="category">Thể loại:</p>
+            <div id="category-list" class="row">
+              <div class="col-6">
+                <label><input type="checkbox" value="Tiên hiệp"> Tiên hiệp</label><br>
+                <label><input type="checkbox" value="Kiếm hiệp"> Kinh dị</label><br>
+                <label><input type="checkbox" value="Ngôn tình"> Ngôn tình</label><br>
+                <label><input type="checkbox" value="Đô thị"> Đô thị</label><br>
+                <label><input type="checkbox" value="Trọng sinh"> Trọng sinh</label><br>
+                <label><input type="checkbox" value="Xuyên không"> Xuyên không</label><br>
+                <label><input type="checkbox" value="Dị giới"> Dị giới</label><br>
+                <label><input type="checkbox" value="Bách hợp"> Bách hợp</label><br>
+                <label><input type="checkbox" value="Cung đấu"> Cung đấu</label><br>
+                <label><input type="checkbox" value="Sủng ngọt"> Sủng ngọt</label><br>
+                <label><input type="checkbox" value="Hài hước"> Hài hước</label><br>
+                <label><input type="checkbox" value="Gia đấu"> Gia đấu</label>
+              </div>
+              <div class="col-6">
+                <label><input type="checkbox" value="Khoa học viễn tưởng"> Khoa học viễn tưởng</label><br>
+                <label><input type="checkbox" value="Huyền huyễn"> Huyền huyễn</label><br>
+                <label><input type="checkbox" value="Cổ đại"> Cổ đại</label><br>
+                <label><input type="checkbox" value="Hiện đại"> Hiện đại</label><br>
+                <label><input type="checkbox" value="Linh dị"> Linh dị</label><br>
+                <label><input type="checkbox" value="Quân sự"> Quân sự</label><br>
+                <label><input type="checkbox" value="Lịch sử"> Lịch sử</label><br>
+                <label><input type="checkbox" value="Dị năng"> Tâm lý</label><br>
+                <label><input type="checkbox" value="Phiêu lưu"> Phiêu lưu</label><br>
+                <label><input type="checkbox" value="Đam mỹ"> Đam mỹ</label><br>
+                <label><input type="checkbox" value="Kinh dị"> Kinh dị</label><br>
+                <label><input type="checkbox" value="Ngược luyến"> Ngược luyến</label>
+              </div>
+            </div>
+
+            <div class="mb-3 mt-2">
+              <label for="status-select">Tiến độ:</label>
+              <select id="status-select" class="form-select">
+                <option value="writing">Đang tiến hành</option>
+                <option value="completed">Hoàn thành</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../javascript/New_story.js"></script>
+</body>
+</html>

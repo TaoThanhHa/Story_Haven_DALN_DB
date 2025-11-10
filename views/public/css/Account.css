@@ -1,0 +1,644 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background-image: url(../images/nen.jpg);
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+body .container1 {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 70px;
+}
+
+/* Header */
+body .navbar {
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; 
+}
+
+.navbar-brand img {
+  height: 40px;
+}
+
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Tìm kiếm */
+.navbar .search-form {
+  width: 100%;
+  max-width: 300px; 
+}
+
+.navbar .form-control{
+  border: none;
+  outline: none;
+  padding-left: 10px;
+  background-color: #f8f9fa;
+}
+
+.navbar .btn-outline-success{
+  margin-right: 10px;
+  border: none;
+  outline: none;
+  background: #f8f9fa;
+  color: gray;
+}
+
+.navbar .btn-outline-success:hover{
+  border: none;
+  outline: none;
+  background: #f8f9fa;
+  color: gray;
+}
+
+/* Profile */
+.profile {
+  position: relative;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 2px solid #ee6136;
+  height: 300px; 
+}
+
+.profile__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../images/avt10.jpg"); 
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  border-radius: 8px;
+}
+
+.profile__avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 3px solid #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.profile__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile__info {
+  position: relative;
+  z-index: 1;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.profile__name {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.profile__username {
+  color: #eee;
+  margin-bottom: 15px;
+}
+
+.profile__stats {
+  display: flex;
+  justify-content: space-around;
+  color: #ddd;
+}
+
+.profile__stats span {
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.profile__stats span i {
+  color: #00bcd4;
+}
+
+.profile__description-text {
+    white-space: pre-wrap; /* Giữ định dạng xuống dòng và khoảng trắng */
+    word-wrap: break-word; /* Ngắt từ khi quá dài */
+}
+
+
+/* Tabs Navigation */
+.tabs {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.tab {
+  padding: 10px 15px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #777;
+  font-size: 1em;
+  transition: color 0.3s;
+}
+
+.tab:hover {
+  color: #333;
+  background-color: #ffebee;
+}
+
+.tab--active {
+  color: #4afbe7;
+  border-bottom: 2px solid #f3563a;
+}
+
+/* Main Content */
+.content__section {
+  display: none;
+  padding: 20px;
+  background-color: #d2f8f3;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.content__section--active {
+  display: block;
+}
+
+.content__section .col-md-4 .card {
+    margin-bottom: 15px; /* Thêm khoảng cách dưới cho mỗi card */
+}
+
+/* Cards */
+.card {
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card h3 i {
+  color: #29b6f6;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px; /* Thêm padding dưới */
+    border-bottom: 1px solid #eee; /* Thêm đường kẻ dưới */
+    margin-bottom: 15px; /* Khoảng cách với work-list */
+}
+
+.card-header h3 {
+    margin-bottom: 0; /* Bỏ margin dưới mặc định của h3 trong header */
+}
+
+.card-header .text-muted {
+    margin-top: 5px; /* Khoảng cách trên cho text-muted */
+}
+
+/* Following List */
+.following-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.following-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: block;
+  transition: transform 0.3s ease;
+  border: 2px solid #f8613f;
+}
+
+.following-item:hover {
+  transform: scale(1.1);
+}
+
+.following-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Work List */
+.work-list .work-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.work-list .work-item img {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 15px;
+}
+
+.work-list .work-item h4 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.work-list .work-item p {
+  color: #666;
+  font-size: 0.9em;
+}
+
+/* CSS cho danh sách tác phẩm (kiểu mới) */
+.card-header h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h3 i {
+  color: #888;
+  cursor: pointer;
+}
+
+.work-list {
+  padding: 10px;
+}
+
+.work-item {
+  display: flex;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.work-item img {
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 15px;
+}
+
+.work-info h4 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.work-info p {
+  margin-bottom: 5px;
+}
+
+.text-muted {
+  font-size: 0.8em;
+  color: #888 !important;
+}
+
+.float-end {
+  float: right !important;
+}
+
+/* CSS cho đường kẻ chia cách */
+.card hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 0;
+}
+
+/* Bình luận */
+/* --- PHẦN BÌNH LUẬN CHUNG --- */
+.title-cmt {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #222;
+    padding: 0 20px;
+    text-align: left;
+}
+
+.cmt {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+/* --- FORM NHẬP BÌNH LUẬN --- */
+.box-cmt {
+    margin-bottom: 30px;
+}
+
+/* Chỉnh sửa lại phần này để hiển thị nút gửi */
+.box-cmt .row {
+    display: flex;
+    align-items: flex-end; /* Căn chỉnh các item ở dưới cùng */
+    gap: 10px; /* Khoảng cách giữa textarea và button */
+    border: 1px solid #e0e0e0;
+    border-radius: 25px;
+    padding: 8px 15px; /* Padding bên trong input box */
+    background-color: #f9f9f9;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.box-cmt .row .col-10 { /* Cho textarea chiếm phần lớn không gian */
+    flex-grow: 1;
+}
+
+textarea {
+    width: 100%; /* Đảm bảo textarea chiếm 100% của col-10 */
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 5px 0;
+    font-size: 1.05rem;
+    line-height: 1.4;
+    height: 45px;
+    max-height: 120px;
+    overflow-y: auto;
+    background-color: transparent;
+}
+
+.box-cmt .row .col-2 { /* Đảm bảo col-2 chứa nút gửi được hiển thị */
+    display: flex; /* Dùng flex để căn giữa nút */
+    align-items: flex-end; /* Căn chỉnh nút ở dưới cùng */
+    padding-right: 0; /* Bỏ padding mặc định */
+}
+
+.box-cmt .row .col-2 button { /* Style cho nút gửi */
+    width: 45px;
+    height: 45px;
+    background-color: #007bff; /* Màu xanh dương hiện đại */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.box-cmt .row .col-2 button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+
+/* --- DANH SÁCH BÌNH LUẬN --- */
+#commentsList {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+}
+
+#commentsList h3 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 700;
+}
+
+/* --- STYLE CHUNG CHO BÌNH LUẬN VÀ PHẢN HỒI --- */
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-item:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.avt {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #eee;
+}
+
+.avt img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comments-detail {
+    flex: 1;
+}
+
+.nick-name {
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin-bottom: 3px;
+    color: #007bff;
+}
+
+.comments-info {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #444;
+    word-wrap: break-word;
+    margin-bottom: 8px;
+}
+
+.comments-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.comment-date {
+    color: #a0a0a0;
+}
+
+.comments-symbol > div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.comments-symbol > div:hover {
+    color: #007bff;
+}
+
+/* --- PHẦN TRẢ LỜI (REPLIES) --- */
+.replies {
+    margin-left: 60px;
+    padding-left: 20px;
+    border-left: 3px solid #e9ecef;
+    margin-top: 15px;
+    padding-top: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding-bottom: 5px;
+}
+
+.reply {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #e0e0e0;
+    display: flex; /* Đảm bảo reply cũng dùng flex */
+    align-items: flex-start;
+}
+
+.reply:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.reply .avt {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    margin-right: 12px;
+}
+
+.reply .nick-name {
+    font-size: 0.95rem;
+}
+
+.reply .comments-info {
+    font-size: 0.88rem;
+}
+
+.reply .comments-item-meta {
+    font-size: 0.8rem;
+    gap: 12px;
+}
+
+/* --- FORM TRẢ LỜI CỤ THỂ --- */
+.reply-form {
+    margin-left: 60px;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: #f0f2f5;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.reply-form textarea {
+    flex-grow: 1;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 20px;
+    resize: none;
+    height: 40px;
+    max-height: 100px;
+    overflow-y: auto;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+.reply-form textarea:focus {
+    border-color: #337ab7;
+    box-shadow: 0 0 0 0.2rem rgba(51, 122, 183, 0.25);
+}
+
+.reply-form button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #337ab7;
+    color: white;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.reply-form button:hover {
+    background-color: #23527c;
+}
+
+/* Ẩn các icon mũi tên không cần thiết trong textarea */
+textarea::-webkit-resizer {
+    display: none;
+}
+
+/* Đảm bảo link ảnh thumbnail không có gạch chân và không làm ảnh hưởng đến bố cục */
+.work-item .story-thumbnail-link {
+    display: block; 
+    text-decoration: none !important; 
+    color: inherit !important;
+}
+
+/* Định dạng đặc biệt cho link tên truyện để trông giống tiêu đề bình thường */
+.work-item .story-title-link {
+    text-decoration: none !important; 
+    color: inherit !important;
+}
+
+/* Hiệu ứng khi hover vào tên truyện */
+.work-item .story-title-link:hover {
+    color: #007bff !important; 
+    /* text-decoration: underline !important; */ 
+}
+
+/* Đảm bảo tiêu đề <h4> bên trong link vẫn giữ kiểu dáng của nó */
+.work-item .story-title-link h4 {
+    margin-bottom: 5px; 
+    font-size: 1.1em; 
+    font-weight: bold; 
+    color: #333; 
+    
+}

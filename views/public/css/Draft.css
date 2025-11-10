@@ -1,0 +1,95 @@
+*{margin: 0; padding: 0; box-sizing: border-box;}
+
+/*Hearder*/
+.header{
+    width: 100%;
+    height: 50px;
+    box-shadow: 0px 2px 2px 0px gray;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    padding: 25px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+}
+
+.header .tieu-de{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header .tieu-de div{
+    font-weight: 600;
+    margin-left: 15px;
+    font-size: larger;
+}
+
+.header .tieu-de a{
+    text-decoration: none;
+    color: gray;
+    font-size: xx-large;
+    font-weight: 900;
+    height: 54px;
+}
+.header .tieu-de a:hover{
+    color: aqua;
+}
+
+.header .actions{
+    display: flex;
+    list-style: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.header .actions li>button{
+    background-color: #b6e2d3;
+    border-radius: 10px;
+    width: 70px;
+    height: 30px;
+    border: 1px solid #b6e2d3;
+    margin-right: 20px;
+}
+
+.header .actions li a{
+    background-color: #b6e2d3;
+    border-radius: 10px;
+    border: 1px solid #b6e2d3;
+    color: black;
+    text-decoration: none;
+    padding: 4px;
+}
+
+/*Nội dung*/
+.body{
+    display: flex;
+    justify-content: center; 
+    margin-top: 80px;
+}
+
+.body .box-story{
+    width: 75%;
+}
+
+.body .title{
+    margin-top: 20px;
+    padding-bottom: 10px;
+    font-size: larger;
+    font-weight: 600;
+    text-align: center;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid gray;
+}
+
+.story-editor {
+    padding: 10px;
+    margin: 20px;
+    outline: none;
+    border: none;
+}

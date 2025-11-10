@@ -1,0 +1,50 @@
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar-brand img {
+  max-height: 40px;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.navbar-nav .dropdown-menu {
+  font-size: 0.95rem;
+  width: 900px;
+}
+
+/* Tìm kiếm*/
+.navbar-nav .search-form {
+    width: 100%;
+    max-width: 300px; 
+}
+
+.form-control{
+    border: none;
+    outline: none;
+    padding-left: 10px;
+    background-color: #f8f9fa;
+}
+
+.btn-outline-success{
+    margin-right: 10px;
+    border: none;
+    outline: none;
+    background: #f8f9fa;
+    color: gray;
+}
+
+.btn-outline-success:hover{
+    border: none;
+    outline: none;
+    background: #f8f9fa;
+    color: gray;
+}

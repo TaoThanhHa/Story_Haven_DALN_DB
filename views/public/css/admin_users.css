@@ -1,0 +1,275 @@
+/* public/css/admin_users.css */
+
+/* Dành cho H1 của trang quản lý người dùng */
+.content-area h1 {
+    font-size: 2.2rem; /* Giữ kích thước nhỏ hơn một chút so với 2.5rem */
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--primary-color); /* Sử dụng biến màu từ admin_layout.css */
+}
+
+/* Cải thiện giao diện cho phần tìm kiếm/lọc */
+.search-filter {
+    display: flex; /* Đảm bảo flexbox cho sắp xếp */
+    gap: 10px; /* Khoảng cách giữa các phần tử */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #ffffff; /* Nền trắng */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    flex-wrap: wrap; /* Cho phép các mục xuống dòng trên màn hình nhỏ */
+}
+
+.search-filter input[type="text"],
+.search-filter select {
+    flex-grow: 1; /* Cho phép input và select mở rộng */
+    padding: 10px;
+    border: 1px solid var(--border-color); /* Sử dụng biến màu */
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.search-filter button {
+    padding: 10px 18px;
+    background-color: var(--primary-color); /* Sử dụng biến màu */
+    color: var(--text-light); /* Sử dụng biến màu */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.search-filter button:hover {
+    background-color: #0056b3; /* Tối hơn primary-color một chút */
+}
+
+
+/* Cải thiện giao diện cho bảng người dùng */
+#user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden; /* Đảm bảo border-radius hoạt động với bảng */
+    min-width: 600px; /* Đảm bảo bảng không quá nhỏ trên màn hình vừa */
+}
+
+#user-table th, #user-table td {
+    border: 1px solid var(--border-color); /* Sử dụng biến màu */
+    padding: 12px 15px;
+    text-align: left;
+}
+
+#user-table th {
+    background-color: var(--secondary-bg-color); /* Hoặc một màu nền khác */
+    color: var(--text-dark);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    white-space: nowrap; /* Ngăn tiêu đề cột bị xuống dòng */
+}
+
+#user-table th:first-child,
+#user-table td:first-child {
+    width: 50px; /* Cố định chiều rộng cột ID */
+    text-align: center;
+}
+
+#user-table td {
+    vertical-align: middle; /* Căn giữa theo chiều dọc */
+    color: var(--text-dark-secondary);
+}
+
+#user-table tbody tr:nth-child(even) {
+    background-color: var(--light-bg-color); /* Màu nền xen kẽ cho hàng */
+}
+
+#user-table tbody tr:hover {
+    background-color: #f5f5f5; /* Hiệu ứng hover */
+}
+
+#user-table td button {
+    margin-right: 5px; /* Khoảng cách giữa các nút thao tác */
+    margin-bottom: 5px; /* Để tránh tràn trên màn hình nhỏ */
+}
+
+/* Các style đặc biệt cho các nút trong bảng */
+/* Các lớp .btn, .btn-info, .btn-warning, .btn-success, .btn-danger nên nằm trong admin_common.css */
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.btn:hover {
+    transform: translateY(-1px);
+}
+.btn-primary { background-color: var(--primary-color); color: var(--text-light); }
+.btn-primary:hover { background-color: #0056b3; }
+.btn-secondary { background-color: #6c757d; color: white; }
+.btn-secondary:hover { background-color: #5a6268; }
+.btn-info { background-color: #17a2b8; color: white; }
+.btn-info:hover { background-color: #138496; }
+.btn-danger { background-color: #dc3545; color: white; }
+.btn-danger:hover { background-color: #c82333; }
+.btn-sm { /* Small button size */
+    padding: 6px 10px;
+    font-size: 0.85em;
+    border-radius: 4px;
+}
+
+
+/* Pagination Styles */
+.pagination {
+    margin-top: 25px;
+    text-align: center;
+    padding: 15px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pagination button {
+    padding: 8px 14px;
+    border: 1px solid var(--primary-color);
+    background-color: white;
+    color: var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+    background-color: var(--light-bg-color); /* Hover nhẹ */
+    color: var(--primary-color-dark); /* Tối màu chữ */
+    border-color: var(--primary-color-dark);
+}
+
+.pagination button.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    border-color: var(--primary-color);
+}
+
+.pagination button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f0f0f0;
+    color: #888;
+    border-color: #ccc;
+}
+
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    justify-content: center; /* Căn giữa modal theo chiều ngang */
+    align-items: center; /* Căn giữa modal theo chiều dọc */
+    display: flex; /* Dùng flex để căn giữa, display:none sẽ override */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 30px;
+    border: 1px solid #ddd;
+    width: 90%; /* Responsive width */
+    max-width: 650px; /* Max width for larger screens */
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    animation: fadeIn 0.3s ease-out; /* Hiệu ứng mở modal */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    color: var(--primary-color);
+}
+
+.close-button {
+    color: #aaa;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #555;
+    text-decoration: none;
+}
+
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 1.05em;
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="email"],
+.modal-body select {
+    width: 100%; /* Full width */
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: #f9f9f9;
+}
+
+.modal-body input[readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #666;
+}
+
+.modal-footer {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    margin-top: 30px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

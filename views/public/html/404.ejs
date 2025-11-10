@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Không tìm thấy trang - Story Haven</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1b2735, #090a0f);
+      color: #ffffff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 10rem;
+      font-weight: 900;
+      letter-spacing: 10px;
+      background: linear-gradient(90deg, #ff5f6d, #ffc371);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 2s infinite alternate;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-top: 1rem;
+      color: #ccc;
+    }
+
+    p {
+      margin-top: 0.5rem;
+      color: #aaa;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #ff5f6d, #ffc371);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 99, 71, 0.5);
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.7; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>404</h1>
+  <h2>Trang không tồn tại</h2>
+  <p>Có vẻ bạn đã lạc vào không gian trống của Story Haven.</p>
+  <a href="/" class="btn">Về trang chủ</a>
+
+  <footer>© 2025 Story Haven. Mọi quyền được bảo lưu.</footer>
+</body>
+</html>

@@ -1,0 +1,22 @@
+.story-card img {
+  width: 116px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+
+.story-meta {
+  font-size: 0.875rem;
+}
+
+.btn-success{
+  background-color: #adefd1ff;
+  border: 1px solid #adefd1ff;
+  color: #00203fff;
+}
+
+.btn-success:hover{
+  background-color: #00203fff;
+  border: 1px solid #00203fff;
+  color: #adefd1ff;
+}

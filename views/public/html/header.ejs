@@ -1,0 +1,87 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container">
+      <a class="navbar-brand" href="/">
+          <img src="../images/Book Haven (3).png" alt="Story Haven" height="40">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+              <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Thể loại</a>
+                  <ul class="dropdown-menu category1">
+                      <div class="row">
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Bách%20hợp">Bách hợp</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Cổ%20đại">Cổ đại</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Cung%20đấu">Cung đấu</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Đam%20mỹ">Đam mỹ</a></li>
+                          </div>
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Dị%20giới">Dị giới</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Đô%20thị">Đô thị</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Gia%20đấu">Gia đấu</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Hài%20hước">Hài hước</a></li>
+                          </div>
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Hiện%20đại">Hiện đại</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Huyền%20huyễn">Huyền huyễn</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Kiếm%20hiệp">Kiếm hiệp</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Khoa%20học%20viễn%20tưởng">Khoa học viễn tưởng</a></li>
+                          </div>
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Kinh%20dị">Kinh dị</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Lich%20sử">Lịch sử</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Linh%20dị">Linh dị</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Ngôn%20tình">Ngôn tình</a></li>
+                          </div>
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Ngược%20luyến">Ngược luyến</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Phiêu%20lưu">Phiêu lưu</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Quân%20sự">Quân sự</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Sủng%20ngọt">Sủng ngọt</a></li>
+                          </div>
+                          <div class="col-2">
+                              <li><a class="dropdown-item" href="/category?category=Tâm%20lý">Tâm lý</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Tiên%20hiệp">Tiên hiệp</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Trọng%20sinh">Trọng sinh</a></li>
+                              <li><a class="dropdown-item" href="/category?category=Xuyên%20không">Xuyên không</a></li>  
+                          </div>
+                      </div>
+                  </ul>
+              </li>
+              <li class="nav-item"><a class="nav-link" href="/my-story">Tác phẩm của tôi</a></li>
+              <li class="nav-item"><a class="nav-link" href="/library">Thư viện</a></li>
+          </ul>
+
+          <form class="d-flex search-form">
+              <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm truyện..." />
+              <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i></button>
+          </form>
+
+          <% if (user) { %>
+            <div class="nav-item dropdown ms-3">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                    <img src="<%= user.avatar || '../images/default-avatar.png' %>" 
+                        alt="Avatar" class="rounded-circle" width="30" height="30">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/account">Hồ sơ của tôi</a></li>
+                    <li>
+                        <a href="/api/logout" class="dropdown-item text-danger">Đăng xuất</a>
+                    </li>
+
+                </ul>
+            </div>
+          <% } else { %>
+            <div class="ms-3">
+                <a href="/login" class="text-decoration-none me-2">Đăng nhập</a> |
+                <a href="/register" class="text-decoration-none ms-2">Đăng ký</a>
+            </div>
+          <% } %>
+
+      </div>
+  </div>
+</nav>

@@ -1,0 +1,58 @@
+/* Story background */
+.story {
+  margin-top: 30px;
+  position: relative;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+
+.story-bg {
+  position: relative;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 20px;
+  border-radius: 5px;
+}
+
+/* Cover photo */
+.cover-photo img {
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+/* Story info */
+.story-name { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
+.interaction-container { margin-right: 15px; }
+.btn-read { background-color: #adefd1ff; color: #00203fff; border-radius: 20px; }
+.btn-read:hover { background-color: #00203fff; color: #adefd1ff; border-radius: 20px; }
+.btn-follow { background-color: #f8f9fa; color: #6c757d; border-radius: 20px; }
+.btn-follow.clicked { color: #ff0000; }
+.btn-danger{color: #f8f9fa;}
+
+/* Chapter list */
+.chapter-list { margin-top: 30px; }
+.episode { display: flex; align-items: center; }
+.episode-item-num { width: 30px; text-align: center; margin-right: 10px; }
+.episode-item-title { flex-grow: 1; }
+.episode.read { color: #6c757d; }
+
+/* Pagination */
+.pagination .page-link {
+  color: #198754;
+}
+.pagination .page-item.active .page-link {
+  background-color: #adefd1ff;
+  border-color: #adefd1ff;
+  color: #00203fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .story-infor { text-align: center; margin-top: 15px; }
+  .btn-read, .btn-follow { width: 100%; margin-bottom: 10px; }
+  .cover-photo img{width: 300px; height: 450px; display: block; margin: 0 auto;}
+}

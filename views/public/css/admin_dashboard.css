@@ -1,0 +1,180 @@
+/* public/css/admin_dashboard.css */
+
+.content-header {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.content-header h1 {
+    font-size: 2.2em;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.content-header p {
+    color: #777;
+    font-size: 1.1em;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive columns */
+    gap: 20px;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-card .icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    color: #fff;
+}
+
+.stat-card .bg-primary { background-color: #007bff; }
+.stat-card .bg-success { background-color: #28a745; }
+.stat-card .bg-info { background-color: #17a2b8; }
+.stat-card .bg-warning { background-color: #ffc107; }
+.stat-card .bg-danger { background-color: #dc3545; }
+
+
+.stat-card .stat-info {
+    flex-grow: 1;
+}
+
+.stat-card .stat-label {
+    display: block;
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Specific styles for warning/danger cards */
+.stat-card.warning .stat-value { color: #ffc107; }
+.stat-card.danger .stat-value { color: #dc3545; }
+
+/* Chart cards */
+.chart-card {
+    grid-column: span 2; /* Chiếm 2 cột trên grid */
+    min-height: 250px; /* Đảm bảo biểu đồ có đủ không gian */
+    height: 350px; /* Thêm chiều cao cố định để kiểm soát */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Căn giữa nội dung nếu cần */
+    align-items: center; /* Căn giữa nội dung nếu cần */
+}
+
+.chart-card canvas {
+    max-height: 100%; /* Đảm bảo canvas không vượt quá chiều cao của card */
+    width: 100% !important; /* Đảm bảo canvas chiếm đủ chiều rộng */
+    height: 100% !important; /* Đảm bảo canvas chiếm đủ chiều cao */
+}
+
+.chart-card.full-width {
+    grid-column: 1 / -1; /* Chiếm toàn bộ chiều rộng của grid */
+    height: 400px; /* Có thể làm cao hơn cho biểu đồ full-width */
+}
+
+/* Activity Card */
+.activity-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-card ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.activity-card ul li:last-child {
+    border-bottom: none;
+}
+
+/* Quick Access Card */
+.quick-access-card .quick-access-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.quick-access-card .btn {
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.quick-access-card .btn-primary { background-color: #007bff; }
+.quick-access-card .btn-primary:hover { background-color: #0056b3; }
+
+.quick-access-card .btn-info { background-color: #17a2b8; }
+.quick-access-card .btn-info:hover { background-color: #117a8b; }
+
+.quick-access-card .btn-success { background-color: #28a745; }
+.quick-access-card .btn-success:hover { background-color: #1e7e34; }
+
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .chart-card {
+        grid-column: span 1;
+        height: 300px; /* Điều chỉnh chiều cao cho màn hình nhỏ hơn */
+    }
+    .chart-card.full-width {
+        grid-column: 1 / -1;
+        height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-card {
+        grid-column: 1 / -1;
+        height: 300px; /* Giữ chiều cao ổn định trên mobile */
+    }
+    .chart-card.full-width {
+        height: 300px;
+    }
+
+}

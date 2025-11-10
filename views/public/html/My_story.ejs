@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truyện của tôi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/My_story.css">
+  <link rel="stylesheet" href="../css/header.css">
+</head>
+<body>
+  <%- include('header.ejs', { user: typeof user !== 'undefined' ? user : null }) %>
+
+  <!-- Nội dung -->
+  <div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Truyện của tôi</h1>
+    <div class="d-flex">
+      <!-- Thanh tìm kiếm -->
+      <input type="text" id="searchMyStory" class="me-2" placeholder="Tìm truyện">
+      <a href="/story/new" class="btn btn-success font-weight-bold">+ Truyện mới</a>
+    </div>
+  </div>
+
+  <div class="card story-card p-3" id="storyContainer">
+    <!-- Danh sách truyện render ở đây -->
+  </div>
+</div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../javascript/My_story.js"></script>
+  <script src="../javascript/Category.js"></script>
+  <script src="../javascript/search_result.js"></script>
+</body>
+</html>

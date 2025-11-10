@@ -1,0 +1,85 @@
+<h1>Quản lý tài khoản người dùng</h1>
+
+<div class="search-filter">
+    <input type="text" id="search-input" placeholder="Tìm kiếm...">
+    <select id="role-filter">
+        <option value="">Tất cả vai trò</option>
+        <option value="admin">Admin</option>
+        <option value="author">Tác giả</option>
+        <option value="user">Người dùng</option>
+    </select>
+    <select id="status-filter">
+        <option value="">Tất cả trạng thái</option>
+        <option value="active">Hoạt động</option>
+        <option value="blocked">Bị khóa</option>
+    </select>
+    <button onclick="searchAndFilterUsers()">Tìm kiếm</button>
+</div>
+
+<table id="user-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên đăng nhập</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="pagination" id="user-pagination"></div>
+
+<!-- Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Chi tiết người dùng</h2>
+            <span class="close-button" onclick="hideModal('userModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="userForm">
+                <input type="hidden" id="modalUserId">
+                <div class="form-group">
+                    <label>Tên đăng nhập:</label>
+                    <input type="text" id="modalUsername" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="modalEmail" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Vai trò:</label>
+                    <select id="modalRole">
+                        <option value="user">Người dùng</option>
+                        <option value="author">Tác giả</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Trạng thái:</label>
+                    <select id="modalStatus">
+                        <option value="active">Hoạt động</option>
+                        <option value="blocked">Bị khóa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ngày tạo:</label>
+                    <input type="text" id="modalCreatedAt" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Tổng số truyện:</label>
+                    <input type="text" id="modalTotalStories" readonly>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideModal('userModal')">Đóng</button>
+            <button class="btn btn-primary" id="saveUserBtn">Lưu thay đổi</button>
+            <button class="btn btn-danger" id="deleteUserBtn">Xóa người dùng</button>
+        </div>
+    </div>
+</div>

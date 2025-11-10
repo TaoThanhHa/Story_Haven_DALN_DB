@@ -1,0 +1,120 @@
+/* Box chứa danh sách */
+.box {
+  background-color: #fff;
+}
+
+.related-stories h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 10px;
+}
+
+/* Card truyện */
+.storyBox{
+  display: flex;
+  justify-content: center; 
+}
+
+#storyContainer .card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 244.67px;
+}
+
+#storyContainer .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#storyContainer .card-img-top {
+  height: 330px;
+  width: 250px;
+  object-fit: cover;
+}
+
+#storyContainer .card-title {
+  font-size: 1.2rem;
+  line-height: 1.3;
+  font-weight: 600;
+  margin-bottom: 7px;
+  display: -webkit-box; 
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+#storyContainer .card-text{
+  font-size: 1rem;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  display: -webkit-box; 
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #198754;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination button:hover {
+  background-color: #146c43;
+}
+
+#page-info {
+  font-weight: 500;
+}
+
+/* Responsive: số truyện hiển thị trên 1 dòng */
+@media (min-width: 1200px) {
+  /* Màn hình lớn: 4 truyện / hàng */
+  #storyContainer > div {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+@media (max-width: 1199.98px) and (min-width: 992px) {
+  /* Laptop: 3 truyện / hàng */
+  #storyContainer > div {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+}
+
+@media (max-width: 991.98px) and (min-width: 576px) {
+  /* Tablet: 2 truyện / hàng */
+  #storyContainer > div {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  /* Điện thoại: 1 truyện / hàng */
+  #storyContainer > div {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+

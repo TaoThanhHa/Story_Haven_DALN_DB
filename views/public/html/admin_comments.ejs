@@ -1,0 +1,113 @@
+<!-- views/admin/admin_comments.ejs -->
+<div class="admin-content-header">
+    <h1>Quản lý Bình luận Bị Báo cáo</h1>
+</div>
+
+<div class="admin-content-body">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách Bình luận Bị Báo cáo</h3>
+            <div class="search-filter-controls">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm nội dung, tác giả, người báo cáo...">
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending" selected>Chờ xử lý</option>
+                    <option value="reviewed">Đã xem xét</option>
+                    <option value="dismissed">Bỏ qua</option>
+                    <option value="action_taken">Đã xử lý</option>
+                </select>
+                <select id="reasonFilter">
+                    <option value="">Tất cả lý do</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Ngôn ngữ tục tĩu">Ngôn ngữ tục tĩu</option>
+                    <option value="Phân biệt chủng tộc">Phân biệt chủng tộc</option>
+                    <option value="Nội dung người lớn">Nội dung người lớn</option>
+                    <option value="Khác">Khác</option>
+                </select>
+                <button id="applyFilterBtn" class="btn btn-primary">Áp dụng</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID Báo cáo</th>
+                            <th>ID Bình luận</th>
+                            <th>Nội dung Bình luận</th>
+                            <th>Tác giả</th>
+                            <th>Người Báo cáo</th>
+                            <th>Lý do Báo cáo</th>
+                            <th>Trạng thái Báo cáo</th>
+                            <th>Trạng thái Bình luận</th>
+                            <th>Thời gian Báo cáo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportedCommentsTableBody">
+                        <!-- Dữ liệu sẽ được tải bởi JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-controls">
+                <button id="prevPageBtn" class="btn btn-secondary" disabled>Trước</button>
+                <span id="pageInfo">Trang 1 / 1</span>
+                <button id="nextPageBtn" class="btn btn-secondary" disabled>Sau</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết và xử lý bình luận -->
+<div id="commentDetailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Chi tiết Bình luận Bị Báo cáo</h2>
+        <div id="modalBody">
+            <p><strong>ID Báo cáo:</strong> <span id="modalReportId"></span></p>
+            <p><strong>ID Bình luận:</strong> <span id="modalCommentId"></span></p>
+            <p><strong>Loại Bình luận:</strong> <span id="modalCommentType"></span></p>
+            <p><strong>Thuộc truyện:</strong> <span id="modalStoryTitle"></span></p>
+            <p><strong>Thuộc chương:</strong> <span id="modalChapterTitle"></span></p>
+            <p><strong>Trên trang cá nhân của:</strong> <span id="modalTargetUserProfile"></span></p>
+            <p><strong>Nội dung:</strong> <textarea id="modalCommentContent" rows="5" readonly></textarea></p>
+            <p><strong>Tác giả:</strong> <span id="modalCommentAuthor"></span> (<span id="modalCommentAuthorEmail"></span>)</p>
+            <p><strong>Người Báo cáo:</strong> <span id="modalReporterUsername"></span> (<span id="modalReporterEmail"></span>)</p>
+            <p><strong>Lý do Báo cáo:</strong> <span id="modalReportReason"></span></p>
+            <p><strong>Trạng thái Báo cáo:</strong> <span id="modalReportStatus"></span></p>
+            <p><strong>Trạng thái Bình luận Gốc:</strong> <span id="modalCommentStatus"></span></p>
+            <p><strong>Thời gian Báo cáo:</strong> <span id="modalReportedAt"></span></p>
+            <p><strong>Admin đã xử lý:</strong> <span id="modalAdminUsername"></span></p>
+            <p><strong>Hành động đã thực hiện:</strong> <textarea id="modalActionTaken" rows="3" readonly></textarea></p>
+
+            <h3>Hành động của Admin</h3>
+            <div class="admin-actions">
+                <div class="form-group">
+                    <label for="adminReportStatus">Cập nhật trạng thái báo cáo:</label>
+                    <select id="adminReportStatus">
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="reviewed">Đã xem xét</option>
+                        <option value="dismissed">Bỏ qua</option>
+                        <option value="action_taken">Đã xử lý</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="adminActionTaken">Ghi chú hành động:</label>
+                    <textarea id="adminActionTaken" rows="3" placeholder="Ghi chú của admin về hành động đã thực hiện..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="adminCommentStatus">Cập nhật trạng thái bình luận gốc:</label>
+                    <select id="adminCommentStatus">
+                        <option value="active">Active</option>
+                        <option value="hidden">Hidden</option>
+                        <option value="deleted">Deleted (Xóa logic)</option>
+                    </select>
+                </div>
+                <button id="saveAdminActionsBtn" class="btn btn-primary">Lưu Hành động</button>
+            </div>
+            <hr>
+            <button id="deleteCommentBtn" class="btn btn-danger">Xóa Bình luận Gốc (Xóa vĩnh viễn)</button>
+            <button id="deleteReportBtn" class="btn btn-warning">Xóa Báo cáo này</button>
+        </div>
+    </div>
+</div>

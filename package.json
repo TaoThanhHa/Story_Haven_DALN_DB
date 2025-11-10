@@ -1,0 +1,31 @@
+{
+  "name": "storyhaven",
+  "version": "1.0.0",
+  "description": "Story Haven là nơi lý tưởng cho những người yêu thích đọc truyện, nơi họ có thể tìm kiếm, đọc, và chia sẻ các tác phẩm yêu thích mọi lúc, mọi nơi.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^1.20.3",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.15.3",
+    "storyhaven": "file:"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

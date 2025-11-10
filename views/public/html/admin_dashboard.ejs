@@ -1,0 +1,92 @@
+<!-- views/admin/admin_dashboard.ejs -->
+<div class="content-header">
+    <h1>Dashboard Admin</h1>
+    <p>Tổng quan hệ thống truyện của bạn</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Thẻ thống kê tổng quan -->
+    <div class="card stat-card">
+        <div class="icon-wrapper bg-primary">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Tổng số người dùng</span>
+            <span class="stat-value" id="totalUsers">...</span>
+        </div>
+    </div>
+
+    <div class="card stat-card">
+        <div class="icon-wrapper bg-success">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Tổng số truyện</span>
+            <span class="stat-value" id="totalStories">...</span>
+        </div>
+    </div>
+
+    <div class="card stat-card">
+        <div class="icon-wrapper bg-info">
+            <i class="fas fa-comments"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Tổng số bình luận</span>
+            <span class="stat-value" id="totalComments">...</span>
+        </div>
+    </div>
+
+    <div class="card stat-card warning">
+        <div class="icon-wrapper bg-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Truyện chờ duyệt</span>
+            <span class="stat-value" id="pendingStories">...</span>
+        </div>
+    </div>
+
+    <div class="card stat-card danger">
+        <div class="icon-wrapper bg-danger">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Báo cáo bình luận</span>
+            <span class="stat-value" id="pendingReports">...</span>
+        </div>
+    </div>
+
+    <!-- Biểu đồ -->
+    <div class="card chart-card full-width">
+        <h3>Truyện mới trong 7 ngày qua</h3>
+        <canvas id="newStoriesChart"></canvas>
+    </div>
+
+    <div class="card chart-card">
+        <h3>Thể loại truyện phổ biến</h3>
+        <canvas id="storyCategoriesChart"></canvas>
+    </div>
+
+    <!-- Hoạt động gần đây -->
+    <div class="card activity-card">
+        <h3>Hoạt động gần đây của Admin</h3>
+        <ul id="adminActivitiesList">
+            <li><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</li>
+            <!-- Dữ liệu sẽ được load bằng JS -->
+        </ul>
+    </div>
+
+    <!-- Truy cập nhanh -->
+    <div class="card quick-access-card">
+        <h3>Truy cập nhanh</h3>
+        <div class="quick-access-buttons">
+            <a href="/admin/stories" class="btn btn-primary"><i class="fas fa-plus"></i> Quản lý Truyện</a>
+            <a href="/admin/comments" class="btn btn-info"><i class="fas fa-comment-dots"></i> Quản lý Bình luận</a>
+            <a href="/admin/users" class="btn btn-success"><i class="fas fa-user-friends"></i> Quản lý Người dùng</a>
+            <!-- Thêm các nút khác nếu cần -->
+        </div>
+    </div>
+</div>
+
+<!-- Thư viện Chart.js để vẽ biểu đồ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

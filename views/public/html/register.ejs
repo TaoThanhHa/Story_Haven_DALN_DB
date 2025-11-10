@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Kí</title>
+    <link rel="stylesheet" href="../css/Đk.css" type="text/css">
+</head>
+<body>
+    <div class="gdđn">
+        <div class="khunglon">
+            <div class="x"><a href="/login">X</a></div>
+            <div class="khungnho">
+                <div class="khungbe">
+                    <div class="thamgiagt">
+                        <div class="dnvao">
+                            <span class="chu">Tham gia với chúng tôi</span>
+                        </div>
+                        <div class="dnvao">
+                            <span class="quyenloi">Là một phần của cộng đồng tác giả và độc giả toàn cầu, mọi người đều được kết nối bằng sức mạnh của trí tưởng tượng.</span>
+                        </div>
+                    </div>
+                    
+                    <form id="registerForm">
+                        <input type="text" id="name" name="username" placeholder="Tên" required>
+                        <input type="email" id="email" name="email" placeholder="Email" required>
+                        <div class="error" id="email-error" style="display: none; color: red;"></div>
+                        <input type="tel" id="phone" name="phone" placeholder="Số điện thoại" required>
+                        
+                        <input type="password" id="password" name="password" placeholder="Mật khẩu" required>
+                        <div class="error" id="password-error" style="display: none; color: red;"></div>
+
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                        <div class="error" id="confirm-password-error" style="display: none; color: red;"></div>
+
+                        <button type="submit" class="buttondn">Đăng ký</button>
+                        <div id="formMessage" style="margin-top: 10px;"></div>
+                    </form>
+                </div>
+                <footer class="khungdk">
+                <span>Nếu bạn đã có tài khoản <a class="dangki" href="/login">Đăng nhập</a></span>
+                </footer>
+                <div class="quenMK">
+                    By continuing, you agree to Website's <a class="blue" href="">Điều khoản Dịch vụ</a> and <a class="blue" href="">Chính Sách Bảo Mật.</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../javascript/ĐK.js"></script>
+</body>
+</html>
