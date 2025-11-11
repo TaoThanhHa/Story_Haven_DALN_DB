@@ -13,7 +13,7 @@ function createCommentElement(cmt) {
       <div class="reply-item d-flex align-items-start mt-2" data-reply-id="${r._id}">
         <img src="${r.userId.avatar || '/images/default-avatar.png'}" class="me-2" style="width:30px;height:30px;border-radius:50%;">
         <div class="flex-grow-1">
-          <a href="/account/${r.userId._id}" class="fw-bold">${r.userId.username}</a>
+          <a href="/Account/${r.userId._id}" class="fw-bold">${r.userId.username}</a>
           <span class="text-muted small"> • ${new Date(r.createdAt).toLocaleString()}</span>
           <div class="reply-content mt-1 mb-1">${r.content}</div>
           <div>

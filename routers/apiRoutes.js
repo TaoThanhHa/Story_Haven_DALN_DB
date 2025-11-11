@@ -32,7 +32,7 @@ router.put('/story/:id', apiController.updateStory);
 router.put('/story/:id/control', apiController.updateStoryControl);
 router.put('/story/:id/thumbnail', upload.single('thumbnail'), apiController.updateThumnail);
 router.delete('/story/:id', apiController.deleteStory);
-
+router.get("/story/:storyId/recommend", apiController.getRecommendedStories);
 // ==================== CHAPTER ====================
 router.get('/story/:id/chapters', chapController.getChaptersByStory);
 router.post('/chapter/new', authMiddleware, chapController.createChapter);
@@ -63,9 +63,11 @@ router.post("/chapter/comment/reply", commentController.addReply);
 router.put("/chapter/comment/reply/edit", commentController.editReply);
 router.delete("/chapter/comment/reply/:replyId", commentController.deleteReply);
 // ==================== FOLLOW ====================
-router.get("/library", authMiddleware, apiController.getLibraryStories);
-router.get('/story/follow-status/:storyId', authMiddleware, apiController.getFollowStatus);
-router.post('/story/follow', authMiddleware, apiController.toggleFollow);
+router.post("/story/follow", authMiddleware, apiController.toggleFollow);
+router.get("/story/follow-status/:storyId", authMiddleware, apiController.checkFollowStatus);
+router.get("/library", authMiddleware, apiController.getLibrary);
+router.post("/story/update-read", authMiddleware, apiController.updateLastRead);
+router.get("/story/:storyId/followers", apiController.getStoryFollowers);
 // ==================== SEARCH ====================
 router.get('/stories/search', apiController.searchStories);
 router.get('/stories/category', apiController.getStoriesByCategory);

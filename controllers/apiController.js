@@ -1,10 +1,8 @@
 const bcrypt = require("bcrypt");
 const Story = require("../models/Story");
 const Chapter = require("../models/Chapter");
-const ChapterView = require("../models/ChapterView");
 const Follow = require("../models/Follow");
 const User = require("../models/User");
-const ChapterVote = require("../models/ChapterVote");
 const mongoose = require("mongoose");
 
 const apiController = {
@@ -247,22 +245,30 @@ const apiController = {
         return res.status(401).json({ error: "Email hoặc mật khẩu không chính xác." });
       }
 
-      // Lưu session
+      // ✅ Lưu session
       req.session.user = {
         _id: user._id,
         username: user.username,
         role: user.role
       };
 
-      // Phân quyền redirect
-      let redirectUrl = "/";
-      if (user.role === "admin") redirectUrl = "/admin/dashboard";
+      // ✅ BẮT BUỘC LƯU SESSION TRƯỚC KHI RESPONSE
+      req.session.save(err => {
+        if (err) {
+          console.error("Lỗi lưu session:", err);
+          return res.status(500).json({ error: "Không thể tạo session đăng nhập." });
+        }
 
-      res.json({
-        success: true,
-        message: "Đăng nhập thành công!",
-        role: user.role,
-        redirectUrl
+        // Phân quyền redirect
+        let redirectUrl = "/";
+        if (user.role === "admin") redirectUrl = "/admin/dashboard";
+
+        res.json({
+          success: true,
+          message: "Đăng nhập thành công!",
+          role: user.role,
+          redirectUrl
+        });
       });
 
     } catch (err) {
@@ -356,56 +362,128 @@ logout: (req, res) => {
   },
 
 
-  // ==================== FOLLOW ====================
-  toggleFollow: async (req, res) => {
-    try {
-      const { storyId } = req.body;
-      const userId = req.session.user?._id;
-      if (!userId) return res.status(401).json({ error: "Bạn cần đăng nhập" });
+ // ==================== FOLLOW ====================
 
-      const existing = await Follow.findOne({ user_id: userId, story_id: storyId });
-      if (existing) {
-        await Follow.deleteOne({ _id: existing._id });
-        return res.status(200).json({ followed: false });
-      } else {
-        await Follow.create({ user_id: userId, story_id: storyId });
-        return res.status(200).json({ followed: true });
-      }
-    } catch (err) {
-      console.error("toggleFollow:", err);
-      res.status(500).json({ error: "Lỗi máy chủ" });
+toggleFollow: async (req, res) => {
+  try {
+    if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
+
+    const { storyId } = req.body;
+    const userId = req.session.user._id;
+
+    const exists = await Follow.findOne({ userId, storyId });
+
+    if (exists) {
+      await exists.deleteOne();
+      return res.json({ followed: false });
     }
-  },
 
-  getLibraryStories: async (req, res) => {
-    try {
-      const userId = req.session.user?._id;
-      if (!userId) return res.status(401).json({ error: "Bạn cần đăng nhập" });
+    await Follow.create({ userId, storyId });
+    return res.json({ followed: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+},
 
-      const follows = await Follow.find({ user_id: userId })
-      .populate({
-        path: "story_id",
-        populate: { path: "userId", select: "username" }
-      });
-      const stories = follows.map(f => f.story_id);
-      res.status(200).json(stories);
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  },
+getLibrary: async (req, res) => {
+  try {
+    if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
 
-  getFollowStatus: async (req, res) => {
-    try {
-      const userId = req.session.user?._id;
-      const { storyId } = req.params;
-      if (!userId) return res.json({ followed: false });
+    const list = await Follow.find({ userId: req.session.user._id })
+      .sort({ lastRead: -1 })
+      .populate("storyId")
+      .lean();
 
-      const exist = await Follow.findOne({ user_id: userId, story_id: storyId });
-      res.status(200).json({ followed: !!exist });
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  },
+    const result = list.map(item => ({
+      ...item.storyId,
+      lastRead: item.lastRead
+    }));
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+},
+
+checkFollowStatus: async (req, res) => {
+  try {
+    if (!req.session.user) return res.json({ followed: false });
+
+    const { storyId } = req.params;
+    const userId = req.session.user._id;
+
+    const exists = await Follow.findOne({ userId, storyId });
+    res.json({ followed: !!exists });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+},
+
+updateLastRead: async (req, res) => {
+  try {
+    if (!req.session.user) return res.status(401).json({});
+
+    const { storyId } = req.body;
+    await Follow.updateOne(
+      { userId: req.session.user._id, storyId },
+      { lastRead: Date.now() }
+    );
+    res.json({ success: true });
+  } catch {
+    res.json({ success: false });
+  }
+},
+
+// ===== LẤY TỔNG NGƯỜI FOLLOW 1 TRUYỆN =====
+getStoryFollowers: async (req, res) => {
+  try {
+    const { storyId } = req.params;
+    const count = await Follow.countDocuments({ storyId });
+    res.json({ total_follow: count });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+},
+
+// ===== LẤY 4 TRUYỆN GỢI Ý TRÙNG ÍT NHẤT 2 THỂ LOẠI =====
+getRecommendedStories: async (req, res) => {
+  try {
+    const { storyId } = req.params;
+
+    const currentStory = await Story.findById(storyId);
+    if (!currentStory) return res.json([]);
+
+    let categories = currentStory.category || "";
+    if (typeof categories === "string") categories = categories.split(",").map(c => c.trim());
+
+    const stories = await Story.find({ _id: { $ne: storyId } });
+
+    const scored = stories.map(st => {
+      let stCats = st.category || "";
+      if (typeof stCats === "string") stCats = stCats.split(",").map(c => c.trim());
+
+      // Đếm số thể loại trùng
+      const matchCount = stCats.filter(c => categories.includes(c)).length;
+
+      return { story: st, matchs: matchCount };
+    });
+
+    // Chỉ lấy truyện trùng >= 2 thể loại
+    const filtered = scored.filter(s => s.matchs >= 2);
+
+    // Lấy 4 cái cao nhất
+    const result = filtered
+      .sort((a, b) => b.matchs - a.matchs)
+      .slice(0, 4)
+      .map(s => s.story);
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+},
+
 };
 
 module.exports = apiController;

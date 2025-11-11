@@ -50,6 +50,53 @@
   color: #00203fff;
 }
 
+/* Card truyện */
+.storyBox{
+  display: flex;
+  justify-content: center; 
+}
+
+#recommendContainer .card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 244.67px;
+}
+
+#recommendContainer .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#recommendContainer .card-img-top {
+  height: 330px;
+  width: 250px;
+  object-fit: cover;
+}
+
+#recommendContainer .card-title {
+  font-size: 1.2rem;
+  line-height: 1.3;
+  font-weight: 600;
+  margin-bottom: 7px;
+  display: -webkit-box; 
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+#recommendContainer .card-text{
+  font-size: 1rem;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  display: -webkit-box; 
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .story-infor { text-align: center; margin-top: 15px; }
