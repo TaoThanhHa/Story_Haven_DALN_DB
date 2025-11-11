@@ -48,10 +48,19 @@ const userSchema = new mongoose.Schema({
   created_at: {
     type: Date,
     default: Date.now
-  }
+  },
+  // BỔ SUNG HAI TRƯỜNG MỚI NÀY
+  following: [{ // Danh sách những người dùng mà user này đang theo dõi
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  followers: [{ // Danh sách những người dùng đang theo dõi user này
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
-  versionKey: false, 
-  collection: 'users' 
+  versionKey: false,
+  collection: 'users'
 });
 
 // 🔐 Tự động mã hoá mật khẩu khi lưu

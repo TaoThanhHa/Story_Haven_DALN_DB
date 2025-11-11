@@ -48,3 +48,5 @@ app.use('/', htmlRoutes);
 app.listen(PORT, () => {
   console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
 });
+
+app.use(express.static('public'));

@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
   <div class="container">
       <a class="navbar-brand" href="/">
-          <img src="../images/Book Haven (3).png" alt="Story Haven" height="40">
+          <img src="/images/Book Haven (3).png" alt="Story Haven" height="40">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
@@ -64,8 +64,8 @@
           <% if (user) { %>
             <div class="nav-item dropdown ms-3">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                    <img src="<%= user.avatar || '../images/default-avatar.png' %>" 
-                        alt="Avatar" class="rounded-circle" width="30" height="30">
+                    <img src="<%= user.avatar || '/images/default-avatar.png' %>"
+                        alt="Avatar" class="rounded-circle" width="30" height="30" id="navbarAvatarImg">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/account">Hồ sơ của tôi</a></li>

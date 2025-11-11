@@ -448,20 +448,156 @@ logout: (req, res) => {
       if (!req.session.user) {
         return res.status(401).json({ error: "Bạn chưa đăng nhập" });
       }
-
-      const user = await User.findById(req.session.user._id).select("-password");
+      // Populate following và followers để có thể đếm số lượng
+      const user = await User.findById(req.session.user._id)
+                               .select("-password")
+                               .populate('following', 'username avatar') // Lấy username và avatar của người đang theo dõi
+                               .populate('followers', 'username avatar'); // Lấy username và avatar của người theo dõi mình
       if (!user) {
         return res.status(404).json({ error: "Không tìm thấy người dùng" });
       }
-
-      res.json(user);
-    } catch {
+      // Gửi cả số lượng following và followers
+      res.json({
+        ...user.toObject(), // Chuyển sang object thường để thêm thuộc tính
+        followingCount: user.following.length,
+        followersCount: user.followers.length
+      });
+    } catch(err) {
+      console.error("getAccountInfo error:", err); // Thêm console.error để dễ debug
       res.status(500).json({ error: "Server error" });
     }
   },
 
+  // FOLLOW USER
+  // Lấy thông tin profile của một user bất kỳ (dùng khi xem profile người khác)
+  getUserProfile: async (req, res) => {
+    try {
+      const { userId } = req.params;
 
- // ✅ Update profile
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+      }
+
+      // Populate following và followers để có thể đếm số lượng
+      const userProfile = await User.findById(userId)
+                                    .select("-password")
+                                    .populate('following', 'username avatar') // Lấy username và avatar của người đang theo dõi
+                                    .populate('followers', 'username avatar'); // Lấy username và avatar của người theo dõi mình
+
+      if (!userProfile) {
+        return res.status(404).json({ error: "Không tìm thấy người dùng." });
+      }
+
+      let isFollowing = false;
+      if (req.session.user && req.session.user._id !== userId) { // Nếu có user đăng nhập và không phải profile của chính mình
+        const currentUser = await User.findById(req.session.user._id);
+        isFollowing = currentUser.following.includes(userProfile._id);
+      }
+
+      res.json({
+        ...userProfile.toObject(),
+        followingCount: userProfile.following.length,
+        followersCount: userProfile.followers.length,
+        isFollowing: isFollowing // Thêm trạng thái theo dõi từ phía người dùng hiện tại
+      });
+
+    } catch (err) {
+      console.error("getUserProfile error:", err);
+      res.status(500).json({ error: "Lỗi server khi lấy thông tin người dùng." });
+    }
+  },
+
+  // Theo dõi/Bỏ theo dõi một người dùng
+  toggleUserFollow: async (req, res) => {
+    try {
+      const { userId } = req.params; // ID của người mà ta muốn theo dõi/bỏ theo dõi
+      const currentUserId = req.session.user?._id; // ID của người đang thực hiện hành động
+
+      if (!currentUserId) {
+        return res.status(401).json({ error: "Bạn cần đăng nhập để thực hiện hành động này." });
+      }
+
+      if (currentUserId === userId) {
+        return res.status(400).json({ error: "Bạn không thể tự theo dõi chính mình." });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+      }
+
+      const userToFollow = await User.findById(userId);
+      const currentUser = await User.findById(currentUserId);
+
+      if (!userToFollow || !currentUser) {
+        return res.status(404).json({ error: "Không tìm thấy người dùng." });
+      }
+
+      const isAlreadyFollowing = currentUser.following.includes(userToFollow._id);
+
+      if (isAlreadyFollowing) {
+        // Bỏ theo dõi
+        currentUser.following.pull(userToFollow._id);
+        userToFollow.followers.pull(currentUser._id);
+        await currentUser.save();
+        await userToFollow.save();
+        return res.json({ success: true, followed: false, message: "Đã bỏ theo dõi." });
+      } else {
+        // Theo dõi
+        currentUser.following.push(userToFollow._id);
+        userToFollow.followers.push(currentUser._id);
+        await currentUser.save();
+        await userToFollow.save();
+        return res.json({ success: true, followed: true, message: "Đã theo dõi." });
+      }
+
+    } catch (err) {
+      console.error("toggleUserFollow error:", err);
+      res.status(500).json({ error: "Lỗi server khi thực hiện theo dõi/bỏ theo dõi." });
+    }
+  },
+
+  //  Lấy danh sách những người mà user đang theo dõi
+  getFollowingUsers: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+      }
+
+      const user = await User.findById(userId).populate('following', 'username avatar');
+      if (!user) {
+        return res.status(404).json({ error: "Không tìm thấy người dùng." });
+      }
+
+      res.json({ success: true, following: user.following });
+    } catch (err) {
+      console.error("getFollowingUsers error:", err);
+      res.status(500).json({ error: "Lỗi server khi lấy danh sách đang theo dõi." });
+    }
+  },
+
+  // Lấy danh sách những người đang theo dõi user
+  getFollowersUsers: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+      }
+
+      const user = await User.findById(userId).populate('followers', 'username avatar');
+      if (!user) {
+        return res.status(404).json({ error: "Không tìm thấy người dùng." });
+      }
+
+      res.json({ success: true, followers: user.followers });
+    } catch (err) {
+      console.error("getFollowersUsers error:", err);
+      res.status(500).json({ error: "Lỗi server khi lấy danh sách người theo dõi." });
+    }
+  },
+
+
+ // Update profile
   updateUserProfile: async (req, res) => {
     try {
       if (!req.session.user) {

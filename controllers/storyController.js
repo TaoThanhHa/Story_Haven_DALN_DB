@@ -18,6 +18,11 @@ const storyController = {
     getSearch: (req, res) => res.render('Search_result'),
     getCategory: (req, res) => res.render('Category'),
 
+    getUserProfile: (req, res) => {
+        const userId = req.params.userId;
+        res.render('user/userProfile', { userId: userId, pageTitle: `Profile của ${userId}` });
+    },
+
     handleNotFound: (req, res) => {
         res.status(404).render('404');
     }

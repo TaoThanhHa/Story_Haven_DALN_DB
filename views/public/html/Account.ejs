@@ -1,3 +1,4 @@
+<!-- Account.ejs -->
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -24,42 +25,55 @@
         <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
         <section class="profile">
             <div class="profile__background"></div>
-            <div class="profile__avatar"><img src="../images/schwi.png" alt="Avatar của "></div>
+            <!-- Thay đổi ảnh mặc định và thêm ID nếu muốn cập nhật bằng JS -->
+            <div class="profile__avatar"><img src="/images/schwi.png" alt="Avatar của " id="profileMainAvatar"></div>
             <div class="profile__info">
                 <h2 class="profile__name" id="profileFullName"></h2>
                 <p class="profile__username">@<span id="profileUsername"></span></p>
                 <div class="profile__stats">
                     <span><i class="fa fa-book"></i> <span id="storyCount">0</span> Tác phẩm</span>
-                    <span><i class="fa fa-user-friends"></i> 1 Người theo dõi</span>
+                    <!-- Cập nhật ID và giá trị mặc định cho Followers và Following -->
+                    <span><i class="fa fa-user-friends"></i> <span id="followersCountDisplay">0</span> Người theo dõi</span>
+                    <span><i class="fa fa-users"></i> <span id="followingCountDisplay">0</span> Đang theo dõi</span>
                 </div>
+                <!-- Nút Follow/Unfollow, chỉ hiện khi xem profile người khác -->
+                <button id="followButton" class="btn btn-primary mt-3" style="display:none;"></button>
             </div>
         </section>
 
         <nav class="tabs">
             <button class="tab tab--active" data-tab="gioithieu"><i class="fa fa-info-circle"></i> Giới thiệu</button>
             <button class="tab" data-tab="hoithoai"><i class="fa fa-comments"></i> Hội thoại</button>
-            <button class="tab" data-tab="caidat"><i class="fas fa-cog"></i> Cài đặt</button>
+            <!-- Ẩn tab cài đặt nếu đang xem profile của người khác -->
+            <button class="tab" data-tab="caidat" id="settingsTab"><i class="fas fa-cog"></i> Cài đặt</button>
         </nav>
 
         <main class="content">
-            <!-- Đổi tên id của section Giới thiệu cũ thành intro-description để tránh trùng lặp và làm rõ mục đích -->
             <section id="gioithieu" class="content__section content__section--active">
                 <div class="container2">
                     <div class="row">
                         <div class="col-md-4">
                             <!-- Card Giới thiệu / Mô tả -->
-                            <div class="card mb-3"> <!-- Thêm mb-3 để có khoảng cách với card bên dưới -->
+                            <div class="card mb-3">
                                 <h3><i class="fa fa-info-circle"></i> Mô tả/Giới thiệu</h3>
                                 <p id="profileDescriptionContent" class="profile__description-text">Chưa có mô tả.</p>
                             </div>
 
-                            <!-- Card Đang theo dõi -->
-                            <div class="card">
+                            <!-- Card Đang theo dõi (Hiển thị người mà user hiện tại đang theo dõi) -->
+                            <div class="card mb-3" id="followingListCard">
                                 <h3><i class="fa fa-heart"></i> Đang theo dõi</h3>
-                                <div class="following-list">
-                                    <a href="Admin_Account.html" class="following-item"><img src="../images/nền.jpg"
-                                            alt="Avatar Admin"></a>
-                                    <!-- Thêm các người theo dõi khác tại đây -->
+                                <div class="following-list" id="followingUsersList">
+                                    <!-- Danh sách người đang theo dõi sẽ được thêm vào đây bằng JavaScript -->
+                                    <p id="noFollowingMessage" style="display: none;">Chưa theo dõi ai.</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Người theo dõi (Hiển thị người đang theo dõi user hiện tại) -->
+                            <div class="card" id="followersListCard">
+                                <h3><i class="fa fa-user-friends"></i> Người theo dõi</h3>
+                                <div class="following-list" id="followersUsersList">
+                                    <!-- Danh sách người theo dõi sẽ được thêm vào đây bằng JavaScript -->
+                                    <p id="noFollowersMessage" style="display: none;">Chưa có người theo dõi.</p>
                                 </div>
                             </div>
                         </div>
@@ -79,6 +93,7 @@
             </section>
 
             <section id="hoithoai" class="content__section">
+                <!-- Giữ nguyên phần bình luận -->
                 <div class="card">
                     <div class="title-cmt">Bình luận</div>
                     <div class="cmt">
@@ -102,7 +117,7 @@
                 </div>
             </section>
 
-            <!-- Phần form chỉnh sửa thông tin tài khoản -->
+            <!-- Phần form chỉnh sửa thông tin tài khoản, chỉ hiện khi xem profile của chính mình -->
             <section id="caidat" class="content__section">
                 <div class="card">
                     <h3>Chỉnh sửa thông tin cá nhân</h3>
