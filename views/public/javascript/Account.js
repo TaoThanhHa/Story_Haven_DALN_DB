@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const profileMainAvatar = document.getElementById('profileMainAvatar'); // Avatar lớn ở đầu trang
     const navbarAvatarImg = document.getElementById('navbarAvatarImg'); // Avatar nhỏ trên navbar (đã sửa ID ở header.ejs)
+    const avatarFileInput = document.getElementById('avatarFile'); // Input type="file"
+    const avatarPreview = document.getElementById('avatarPreview');
     const avatarUrlInput = document.getElementById('avatarUrl');
     const descriptionTextarea = document.getElementById('description');
     const profileDescriptionContent = document.getElementById('profileDescriptionContent');
@@ -37,8 +39,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     let currentProfileUserId = null; // ID của người dùng mà chúng ta đang xem profile
-    let loggedInUserId = '<%= user ? user._id : "" %>'; // Lấy ID của user đang đăng nhập từ EJS
+    let loggedInUserId = LOGGED_IN_USER_ID;
     loggedInUserId = loggedInUserId === '' ? null : loggedInUserId; // Chuyển chuỗi rỗng thành null
+    
+
+    // Hàm để hiển thị preview ảnh
+    if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Nếu không có file được chọn, đặt lại ảnh mặc định hoặc ảnh cũ
+                avatarPreview.src = profileMainAvatar.src; // Hoặc một default-avatar.png
+            }
+        });
+    }
 
     // Hàm lấy ID người dùng từ URL (nếu có)
     const getUserIdFromUrl = () => {
@@ -162,27 +182,38 @@ document.addEventListener("DOMContentLoaded", function () {
         const userIdInUrl = getUserIdFromUrl();
         currentProfileUserId = userIdInUrl || loggedInUserId;
 
+        // --- Bắt đầu DEBUGGING LOGS ---
+        console.log("DEBUG: loggedInUserId (EJS processed):", loggedInUserId);
+        console.log("DEBUG: userIdInUrl:", userIdInUrl);
+        console.log("DEBUG: currentProfileUserId:", currentProfileUserId);
+        // --- Kết thúc DEBUGGING LOGS ---
+
+
         if (!currentProfileUserId) {
             console.error("Không tìm thấy ID người dùng để tải profile.");
-            errorMessage.textContent = "Không tìm thấy thông tin tài khoản.";
+            errorMessage.textContent = "Không thể tải thông tin tài khoản.";
             errorMessage.style.display = 'block';
-            return;
+            return; // Dừng ở đây nếu không có ID người dùng
         }
 
         try {
             const url = userIdInUrl ? `/api/user/${userIdInUrl}/profile` : `/api/user/account-info`;
+            console.log("DEBUG: Fetching profile from URL:", url); // Log URL API
+
             const response = await fetch(url);
             const data = await response.json();
 
+            console.log("DEBUG: API Response data:", data); // Log dữ liệu nhận được từ API
+
             if (data.error) {
-                console.error("Lỗi:", data.error);
+                console.error("Lỗi từ API:", data.error);
                 errorMessage.textContent = data.error;
                 errorMessage.style.display = 'block';
                 return;
             }
 
             // Cập nhật thông tin cơ bản
-            profileFullName.textContent = data.username; // Sử dụng fullname nếu có
+            profileFullName.textContent = data.username;
             profileUsername.textContent = data.username;
             storyNameElement.textContent = data.username;
 
@@ -191,9 +222,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Cập nhật các trường form nếu là profile của mình
             if (!userIdInUrl || userIdInUrl === loggedInUserId) {
-                document.getElementById("name").value = data.username;
-                document.getElementById("email").value = data.email;
-                document.getElementById("phone").value = data.phonenumber;
+                const nameInput = document.getElementById("name");
+                if (nameInput) {
+                    nameInput.value = data.username || '';
+                }
+
+                const emailInput = document.getElementById("email");
+                if (emailInput) {
+                    emailInput.value = data.email || '';
+                }
+
+                const phoneInput = document.getElementById("phone");
+                if (phoneInput) { // THÊM KIỂM TRA NULL TẠI ĐÂY
+                    phoneInput.value = data.phonenumber || '';
+                }
             }
 
             const avatarPath = data.avatar && data.avatar !== '' ? data.avatar : '/images/schwi.png';
@@ -201,7 +243,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (navbarAvatarImg) {
                 navbarAvatarImg.src = avatarPath;
             }
-            avatarUrlInput.value = avatarPath;
+            // avatarUrlInput có thể không tồn tại nếu chỉ dùng file upload
+            const avatarUrlInputField = document.getElementById('avatarUrl');
+            if (avatarUrlInputField) {
+                avatarUrlInputField.value = avatarPath;
+            }
+
 
             const userDescription = data.description && data.description !== '' ? data.description : 'Chưa có mô tả.';
             descriptionTextarea.value = userDescription === 'Chưa có mô tả.' ? '' : userDescription;
@@ -226,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetchFollowersUsers(currentProfileUserId);
 
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu tài khoản:", error);
+            console.error("Lỗi khi lấy dữ liệu tài khoản trong catch block:", error); // Log lỗi chi tiết
             errorMessage.textContent = "Không thể tải thông tin tài khoản.";
             errorMessage.style.display = 'block';
         }
@@ -439,24 +486,32 @@ document.addEventListener("DOMContentLoaded", function () {
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const phone = document.getElementById('phone').value;
-        const avatarUrl = avatarUrlInput.value;
         const description = descriptionTextarea.value;
 
-        const updateData = {
-            username: name, // Nếu username được dùng làm tên hiển thị
-            email: email,
-            phone: phone,
-            avatar: avatarUrl,
-            description: description
-        };
+        const formData = new FormData(); // Tạo FormData
+        formData.append('username', name);
+        formData.append('email', email);
+        formData.append('phone', phone);
+        formData.append('description', description);
+
+        const avatarFile = document.getElementById('avatarFile').files[0];
+        if (avatarFile) {
+            formData.append('avatarFile', avatarFile); // Thêm file vào FormData
+        } else {
+            const currentAvatarSrc = profileMainAvatar.src;
+            if (!currentAvatarSrc.includes('schwi.png') && !currentAvatarSrc.includes('default-avatar.png')) {
+                const url = new URL(currentAvatarSrc);
+                formData.append('avatar', url.pathname);
+            } else {
+                formData.append('avatar', '/images/schwi.png'); // Hoặc '/images/default-avatar.png'
+            }
+        }
+
 
         try {
             const response = await fetch('/api/user/update-profile', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updateData)
+                body: formData
             });
             const data = await response.json();
 
@@ -465,8 +520,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 successMessage.style.display = 'block';
                 errorMessage.style.display = 'none';
 
-                // Tải lại toàn bộ profile để đảm bảo mọi thứ được đồng bộ
-                loadProfile();
+                loadProfile(); // Tải lại profile để cập nhật avatar và thông tin mới
 
                 setTimeout(() => {
                     successMessage.style.display = 'none';

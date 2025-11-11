@@ -249,7 +249,8 @@ const apiController = {
       req.session.user = {
         _id: user._id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        avatar: user.avatar
       };
 
       // ✅ BẮT BUỘC LƯU SESSION TRƯỚC KHI RESPONSE
@@ -464,39 +465,49 @@ logout: (req, res) => {
 
  // Update profile
   updateUserProfile: async (req, res) => {
-    try {
-      if (!req.session.user) {
-        return res.status(401).json({ error: "Chưa đăng nhập" });
+      try {
+          if (!req.session.user) {
+              return res.status(401).json({ error: "Chưa đăng nhập" });
+          }
+
+          const { username, email, phone, description } = req.body;
+          let avatarPath = req.body.avatar; // Giữ lại nếu người dùng không upload file mới mà chỉ muốn giữ avatar cũ (hoặc từ URL cũ nếu có)
+
+          // Kiểm tra xem có file mới được upload không
+          if (req.file) {
+              // Đường dẫn lưu vào DB sẽ là /images/ten_file.ext
+              // Vì views/public là gốc, nên /images sẽ trỏ đến views/public/images
+              avatarPath = '/images/' + req.file.filename;
+          }
+
+          const updated = await User.findByIdAndUpdate(
+              req.session.user._id,
+              {
+                  username,
+                  email,
+                  phonenumber: phone,
+                  avatar: avatarPath, // Cập nhật avatar
+                  description
+              },
+              { new: true, runValidators: true } // Thêm runValidators: true nếu bạn có validator trong schema
+          );
+
+          if (!updated) {
+              return res.status(404).json({ error: "Không tìm thấy user" });
+          }
+
+          req.session.user.username = updated.username;
+          // Cập nhật avatar trong session nếu bạn muốn sử dụng nó ở nơi khác ngay lập tức
+          req.session.user.avatar = updated.avatar;
+
+
+          res.json({ success: true, message: "Cập nhật thành công!" });
+
+      } catch (err) {
+          console.error("Error in updateUserProfile:", err); // Log lỗi chi tiết hơn
+          res.status(500).json({ error: "Lỗi server: " + err.message }); // Trả về lỗi cụ thể hơn
       }
-
-      const { username, email, phone, avatar, description } = req.body;
-
-      const updated = await User.findByIdAndUpdate(
-        req.session.user._id,
-        {
-          username,
-          email,
-          phonenumber: phone,
-          avatar,
-          description
-        },
-        { new: true }
-      );
-
-      if (!updated) {
-        return res.status(404).json({ error: "Không tìm thấy user" });
-      }
-
-      // Cập nhật tên mới trong session
-      req.session.user.username = updated.username;
-
-      res.json({ success: true, message: "Cập nhật thành công!" });
-
-    } catch (err) {
-      res.status(500).json({ error: "Lỗi server" });
-    }
   },
-
 
  // ==================== FOLLOW ====================
 

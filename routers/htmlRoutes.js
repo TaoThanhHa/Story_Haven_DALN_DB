@@ -35,4 +35,8 @@ router.use((req, res) => {
 });
 
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> abce1e5 (Update)
