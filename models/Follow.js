@@ -1,11 +1,11 @@
-const mongoose = require("../configs/mongoConnect");
+const mongoose = require("mongoose");
 
-const followSchema = new mongoose.Schema({
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  story_id: { type: mongoose.Schema.Types.ObjectId, ref: "Story", required: true },
-  created_at: { type: Date, default: Date.now },
+const FollowSchema = new mongoose.Schema({
+  userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
+  storyId: {type: mongoose.Schema.Types.ObjectId, ref: "Story", required: true},
+  lastRead: {type: Date,default: Date.now}
 });
 
-followSchema.index({ user_id: 1, story_id: 1 }, { unique: true });
+FollowSchema.index({ userId: 1, storyId: 1 }, { unique: true });
 
-module.exports = mongoose.model("Follow", followSchema);
+module.exports = mongoose.model("Follow", FollowSchema);

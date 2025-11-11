@@ -11,19 +11,22 @@ function renderStories(stories) {
     storyCard.className = "col-6 col-md-3 mb-3 storyBox";
 
     storyCard.innerHTML = `
-      <a href="/story/${story._id}" class="text-decoration-none">
-        <div class="card h-100 shadow-sm">
-          <img src="${story.thumbnail || "/images/default.jpg"}" class="card-img-top story-thumbnail">
-          <div class="card-body">
-            <h5 class="card-title">${story.title}</h5>
-            <p class="card-text">
-              <i class="fa fa-eye"></i> <span class="story-views">0</span>
-              <i class="fa fa-star"></i> <span class="story-votes">0</span>
+        <a href="/story/${story._id}" class="text-decoration-none text-dark">
+          <div class="card h-100 shadow-sm">
+            <img src="${story.thumbnail || "../images/default.jpg"}"
+                 class="card-img-top story-thumbnail"
+                 alt="${story.title}">
+            <div class="card-body">
+              <h5 class="card-title text-truncate-2">${story.title}</h5>
+              <p class="card-text text-muted small">${story.category || "Chưa phân loại"}</p>
+              <p class="card-text text-muted small">
+                <i class="fa fa-eye"></i> <span class="story-views" data-id="${story._id}">0</span>
+                <i class="fa fa-star"></i> <span class="story-votes">0</span>
               <i class="fa fa-bars"></i> <span class="story-chapters">0</span>
-            </p>
+              </p>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
     `;
 
     storyContainer.appendChild(storyCard);

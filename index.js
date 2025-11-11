@@ -26,9 +26,11 @@ app.use(session({
   cookie: {
     secure: false,
     httpOnly: true,
+    sameSite: 'lax', // ✅ Quan trọng để cookie gửi theo fetch
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
 
 // Truyền user vào EJS
 app.use((req, res, next) => {

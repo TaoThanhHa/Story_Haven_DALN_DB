@@ -20,6 +20,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (followBtn) {
         followBtn.addEventListener("click", () => toggleFollow(storyId));
     }
+
+    await fetchTotalFollow(storyId);
+    await fetchRecommendStories(storyId);
+
 });
 
 // ===================== FETCH STORY DATA =====================
@@ -208,3 +212,44 @@ async function fetchTotalStoryVotes(storyId) {
     }
 }
 
+// ===== LẤY TỔNG NGƯỜI FOLLOW =====
+async function fetchTotalFollow(storyId) {
+  try {
+    const res = await fetch(`/api/story/${storyId}/followers`);
+    const data = await res.json();
+    document.getElementById("totalFollow").textContent = data.total_follow ?? 0;
+  } catch (err) {
+    console.error("Lỗi follow:", err);
+  }
+}
+
+// ===== LẤY TRUYỆN GỢI Ý =====
+async function fetchRecommendStories(storyId) {
+  try {
+    const res = await fetch(`/api/story/${storyId}/recommend`);
+    const stories = await res.json();
+    const container = document.getElementById("recommendContainer");
+
+    container.innerHTML = stories.length
+      ? ""
+      : `<p class="text-muted">Không có truyện phù hợp</p>`;
+
+    stories.forEach(story => {
+      container.innerHTML += `
+      <div class="col-6 col-md-3 mb-3 storyBox">
+        <a href="/story/${story._id}" class="text-decoration-none text-dark">
+          <div class="card h-100 shadow-sm">
+            <img src="${story.thumbnail || "../images/default.jpg"}"
+                 class="card-img-top story-thumbnail">
+            <div class="card-body">
+              <h5 class="card-title text-truncate-2">${story.title}</h5>
+              <p class="card-text text-muted small">${story.category}</p>
+            </div>
+          </div>
+        </a>
+      </div>`;
+    });
+  } catch (err) {
+    console.error("Lỗi gợi ý:", err);
+  }
+}

@@ -33,16 +33,23 @@ function renderStories(stories) {
     col.className = "col-md-3 col-sm-6 mb-3";
 
     col.innerHTML = `
-      <div class="card h-100 shadow-sm">
-        <img src="${story.thumbnail || '/images/default.jpg'}"
-             class="card-img-top"
-             alt="${escapeHtml(story.title)}">
-        <div class="card-body">
-          <h5 class="card-title text-truncate-2">${escapeHtml(story.title)}</h5>
-          <p class="text-muted small">${story.category || 'Không rõ thể loại'}</p>
-          <a href="/story/${story._id}" class="btn btn-primary w-100 mt-2">Đọc ngay</a>
-        </div>
-      </div>
+        <a href="/story/${story._id}" class="text-decoration-none text-dark">
+          <div class="card h-100 shadow-sm">
+            <img src="${story.thumbnail || "../images/default.jpg"}"
+                 class="card-img-top story-thumbnail"
+                 alt="${story.title}">
+            <div class="card-body">
+              <h5 class="card-title text-truncate-2">${story.title}</h5>
+              <p class="card-text text-muted small">${story.category || "Chưa phân loại"}</p>
+              <p class="card-text text-muted small">
+                <i class="fa fa-eye"></i> <span class="story-views" data-id="${story._id}">0</span>
+                <i class="fa fa-star"></i> <span class="story-votes">0</span>
+              <i class="fa fa-bars"></i> <span class="story-chapters">0</span>
+              </p>
+              <a href="/story/${story._id}" class="btn btn-primary w-100 mt-2">Đọc ngay</a>
+            </div>
+          </div>
+        </a>
     `;
     container.appendChild(col);
   });
