@@ -34,9 +34,5 @@ router.use((req, res) => {
   res.status(404).render("404"); 
 });
 
+module.exports = router;
 
-<<<<<<< HEAD
-module.exports = router;
-=======
-module.exports = router;
->>>>>>> abce1e5 (Update)
