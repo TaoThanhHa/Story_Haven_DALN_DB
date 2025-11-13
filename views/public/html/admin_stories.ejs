@@ -49,29 +49,7 @@
             </div> -->
         </div>
     </div>
-    <!-- Thêm CSS tùy chỉnh nhỏ nếu cần để căn chỉnh nút "Tìm kiếm" -->
-    <style>
-        @media (min-width: 992px) { /* Cho màn hình desktop trở lên */
-            .row.mb-3 .col-md-2 .form-group {
-                display: flex;
-                align-items: flex-end; /* Căn chỉnh nút ở dưới cùng */
-                height: 100%; /* Để form-group chiếm toàn bộ chiều cao của cột */
-            }
-            .row.mb-3 .col-md-2 .btn {
-                width: 100%; /* Đảm bảo nút chiếm toàn bộ chiều rộng có thể */
-            }
-        }
-        @media (max-width: 767.98px) { /* Trên các màn hình nhỏ hơn (mobile/tablet) */
-            .row.mb-3 .form-group {
-                margin-bottom: 10px; /* Thêm khoảng cách giữa các trường trên mobile */
-            }
-            .row.mb-3 .col-xs-12 .btn {
-                margin-top: 10px; /* Thêm khoảng cách cho nút trên mobile */
-            }
-        }
-    </style>
-
-
+    
     <!-- Bảng hiển thị danh sách truyện -->
     <div class="table-responsive">
         <table class="table table-hover table-bordered">
@@ -140,6 +118,8 @@
                     <div class="form-group">
                         <label for="modalStatus">Trạng thái:</label>
                         <select class="form-control" id="modalStatus">
+                            <option value="draft">Bản nháp</option>       
+                            <option value="pending">Đang chờ duyệt</option>
                             <option value="writing">Đang viết</option>
                             <option value="complete">Hoàn thành</option>
                             <option value="blocked">Bị khóa</option>
