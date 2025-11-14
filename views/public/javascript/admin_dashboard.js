@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const data = await response.json();
             console.log('Dashboard Data:', data);
+            console.log('New Stories Last 7 Days:', data.newStoriesLast7Days);
             renderDashboard(data);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);

@@ -245,6 +245,15 @@ const apiController = {
         return res.status(401).json({ error: "Email hoặc mật khẩu không chính xác." });
       }
 
+      // --- THÊM LOGIC KIỂM TRA TRẠNG THÁI TÀI KHOẢN VÀO ĐÂY ---
+      if (user.status === 'banned' || user.status === 'blocked') { 
+          return res.status(403).json({ error: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.' });
+      }
+      if (user.status === 'inactive') {
+          return res.status(403).json({ error: 'Tài khoản của bạn chưa được kích hoạt hoặc đã bị vô hiệu hóa.' });
+      }
+      // --- KẾT THÚC LOGIC KIỂM TRA TRẠNG THÁI ---
+
       // ✅ Lưu session
       req.session.user = {
         _id: user._id,

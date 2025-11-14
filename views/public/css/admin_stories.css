@@ -1,0 +1,19 @@
+@media (min-width: 992px) {
+    .row.mb-3 .col-md-2 .form-group {
+        display: flex;
+        align-items: flex-end; 
+        height: 100%; 
+    }
+    .row.mb-3 .col-md-2 .btn {
+        width: 100%; 
+    }
+}
+@media (max-width: 767.98px) {
+    .row.mb-3 .form-group {
+        margin-bottom: 10px; 
+    }
+    .row.mb-3 .col-xs-12 .btn {
+        margin-top: 10px;
+    }
+}
+
