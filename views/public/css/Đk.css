@@ -6,7 +6,7 @@
 
 .gdđn {
     width: 100%;
-    height: 100vh;
+    height: 120vh;
     background-image: url(../images/nendki.jpg);
     background-size: cover;
     background-repeat: no-repeat;
@@ -24,8 +24,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 550px;
-    margin-top: 70px;
+    height: 700px;
+    margin-top: 50px;
     border-radius: 5px;
 }
 
@@ -39,13 +39,14 @@
 .x {
     width: 100%;
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 10px;
 }
 
 .x a {
     text-decoration: none;
-    color: gray;
+    color: rgb(6, 6, 6);
+    font-weight: bolder;
 }
 
 .thamgiagt {

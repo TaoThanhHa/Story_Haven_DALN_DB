@@ -1,9 +1,11 @@
+// Account.js
 document.addEventListener("DOMContentLoaded", function () {
-    const profileName = document.getElementById("profileName");
     const profileFullName = document.getElementById("profileFullName");
     const profileUsername = document.getElementById("profileUsername");
     const storyNameElement = document.getElementById("storyName");
     const storyCountElement = document.getElementById("storyCount");
+    const followersCountDisplay = document.getElementById("followersCountDisplay"); // Mới
+    const followingCountDisplay = document.getElementById("followingCountDisplay"); // Mới
     const workList = document.getElementById("workList");
     const publishedStoriesElement = document.getElementById("publishedStories");
     const draftStoriesElement = document.getElementById("draftStories");
@@ -15,25 +17,70 @@ document.addEventListener("DOMContentLoaded", function () {
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content__section');
     const editProfileForm = document.getElementById('editProfileForm');
+    const settingsSection = document.getElementById('caidat'); // Lấy section cài đặt
 
-    // Các element mới thêm vào để hiển thị/chỉnh sửa avatar và mô tả
-    const profileAvatarMain = document.querySelector('.profile__avatar img'); // Avatar lớn ở đầu trang
-    const profileAvatarNavbar = document.querySelector('#navbarDropdownAccount img'); // Avatar nhỏ trên navbar
-    const avatarUrlInput = document.getElementById('avatarUrl'); // Input để nhập URL avatar
-    const descriptionTextarea = document.getElementById('description'); // Textarea để nhập mô tả
-    const profileDescriptionContent = document.getElementById('profileDescriptionContent'); // Chỗ hiển thị mô tả ở tab giới thiệu
+    const profileMainAvatar = document.getElementById('profileMainAvatar'); // Avatar lớn ở đầu trang
+    const navbarAvatarImg = document.getElementById('navbarAvatarImg'); // Avatar nhỏ trên navbar (đã sửa ID ở header.ejs)
+    const avatarFileInput = document.getElementById('avatarFile'); // Input type="file"
+    const avatarPreview = document.getElementById('avatarPreview');
+    const avatarUrlInput = document.getElementById('avatarUrl');
+    const descriptionTextarea = document.getElementById('description');
+    const profileDescriptionContent = document.getElementById('profileDescriptionContent');
 
-    // Function to fetch stories by user ID
-    const fetchStories = async () => {
+    // Các phần tử mới cho tính năng follow
+    const followButton = document.getElementById('followButton');
+    const settingsTab = document.getElementById('settingsTab');
+    const followingListCard = document.getElementById('followingListCard');
+    const followingUsersList = document.getElementById('followingUsersList');
+    const noFollowingMessage = document.getElementById('noFollowingMessage');
+    const followersListCard = document.getElementById('followersListCard');
+    const followersUsersList = document.getElementById('followersUsersList');
+    const noFollowersMessage = document.getElementById('noFollowersMessage');
+
+
+    let currentProfileUserId = null; // ID của người dùng mà chúng ta đang xem profile
+    let loggedInUserId = LOGGED_IN_USER_ID;
+    loggedInUserId = loggedInUserId === '' ? null : loggedInUserId; // Chuyển chuỗi rỗng thành null
+    
+
+    // Hàm để hiển thị preview ảnh
+    if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Nếu không có file được chọn, đặt lại ảnh mặc định hoặc ảnh cũ
+                avatarPreview.src = profileMainAvatar.src; // Hoặc một default-avatar.png
+            }
+        });
+    }
+
+    // Hàm lấy ID người dùng từ URL (nếu có)
+    const getUserIdFromUrl = () => {
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts.length > 2 && pathParts[1] === 'account') {
+            return pathParts[2];
+        }
+        return null;
+    };
+
+    // Hàm fetch stories (cần chỉnh sửa để lấy stories của userId cụ thể)
+    const fetchStories = async (userId) => {
         try {
-            const response = await fetch('/api/storiesbyuser');
+            const url = userId ? `/api/storiesbyuser?userId=${userId}` : '/api/storiesbyuser';
+            const response = await fetch(url);
             const stories = await response.json();
 
             let publishedCount = 0;
             let draftCount = 0;
 
             stories.forEach(story => {
-                if (story.status === 'complete') {
+                if (story.status === 'published') { // Sửa lại thành 'published' nếu đó là trạng thái đã xuất bản
                     publishedCount++;
                 } else {
                     draftCount++;
@@ -42,19 +89,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
             publishedStoriesElement.textContent = publishedCount;
             draftStoriesElement.textContent = draftCount;
-
             storyCountElement.textContent = stories.length;
 
-            workList.innerHTML = ''; // Clear existing content
+            workList.innerHTML = '';
+            if (stories.length === 0) {
+                workList.innerHTML = '<p class="text-muted text-center mt-3">Chưa có truyện nào.</p>';
+                return;
+            }
             stories.forEach(story => {
                 const workItem = document.createElement('div');
                 workItem.classList.add('work-item');
                 workItem.innerHTML = `
-                    <a href="/story/${story.id}" class="story-thumbnail-link"> <!-- Link cho ảnh thumbnail -->
-                        <img src="${story.thumbnail ? story.thumbnail : '../images/default-thumbnail.png'}" alt="${story.title}">
+                    <a href="/story/${story._id}" class="story-thumbnail-link">
+                        <img src="${story.thumbnail ? story.thumbnail : '/images/default-thumbnail.png'}" alt="${story.title}">
                     </a>
                     <div class="work-info">
-                        <a href="/story/${story.id}" class="story-title-link"> <!-- Link cho tên truyện -->
+                        <a href="/story/${story._id}" class="story-title-link">
                             <h4>${story.title}</h4>
                         </a>
                         <p><i class="fas fa-eye"></i> 0 <i class="fas fa-star"></i> 0 <i class="fas fa-list"></i> 0</p>
@@ -62,52 +112,177 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="work-tags">
                             <span class="badge bg-secondary">${story.category ? story.category : 'No category'}</span>
                         </div>
-                        <p class="text-muted">${story.status === 'complete' ? 'Đã xuất bản' : 'Đã xuất bản'}</p>
+                        <p class="text-muted">${story.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}</p> <!-- Đã sửa -->
                     </div>
                 `;
                 workList.appendChild(workItem);
             });
         } catch (error) {
             console.error('Error fetching stories:', error);
-            workList.innerHTML = '<p>Error loading stories.</p>';
+            workList.innerHTML = '<p class="text-danger text-center mt-3">Lỗi khi tải truyện.</p>';
         }
     };
 
-    // Fetch user account info
-    fetch("/api/user/account-info")
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error("Lỗi:", data.error);
+    // Hàm fetch và hiển thị danh sách người đang theo dõi
+    const fetchFollowingUsers = async (userId) => {
+        try {
+            const response = await fetch(`/api/user/${userId}/following`);
+            const data = await response.json();
+            if (data.success && data.following) {
+                followingUsersList.innerHTML = '';
+                if (data.following.length === 0) {
+                    noFollowingMessage.style.display = 'block';
+                } else {
+                    noFollowingMessage.style.display = 'none';
+                    data.following.forEach(user => {
+                        const userItem = document.createElement('a');
+                        userItem.href = `/account/${user._id}`;
+                        userItem.classList.add('following-item');
+                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}">`;
+                        followingUsersList.appendChild(userItem);
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching following users:', error);
+            noFollowingMessage.style.display = 'block';
+            noFollowingMessage.textContent = 'Lỗi khi tải danh sách.';
+        }
+    };
+
+    // Hàm fetch và hiển thị danh sách người theo dõi mình
+    const fetchFollowersUsers = async (userId) => {
+        try {
+            const response = await fetch(`/api/user/${userId}/followers`);
+            const data = await response.json();
+            if (data.success && data.followers) {
+                followersUsersList.innerHTML = '';
+                if (data.followers.length === 0) {
+                    noFollowersMessage.style.display = 'block';
+                } else {
+                    noFollowersMessage.style.display = 'none';
+                    data.followers.forEach(user => {
+                        const userItem = document.createElement('a');
+                        userItem.href = `/account/${user._id}`;
+                        userItem.classList.add('following-item');
+                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}">`;
+                        followersUsersList.appendChild(userItem);
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching followers users:', error);
+            noFollowersMessage.style.display = 'block';
+            noFollowersMessage.textContent = 'Lỗi khi tải danh sách.';
+        }
+    };
+
+    async function loadProfile() {
+        try {
+            const pathParts = window.location.pathname.split("/");
+            const userIdInUrl = pathParts[1] === "account" ? pathParts[2] : null;
+
+            // ✅ API tương ứng
+            const url = userIdInUrl ? `/api/account/${userIdInUrl}` : `/api/user/account-info`;
+
+            const res = await fetch(url, { credentials: "include" });
+
+            if (!res.ok) {
+                console.warn("Không thể load profile:", res.status);
                 return;
             }
 
-            profileName.textContent = data.username;
-            profileFullName.textContent = data.username;
-            profileUsername.textContent = data.username;
-            storyNameElement.textContent = data.username;
-            document.getElementById("name").value = data.username;
-            document.getElementById("email").value = data.email;
-            document.getElementById("phone").value = data.phonenumber;
+            const data = await res.json();
+            const user = data.user || data;
 
-            // Cập nhật các trường mới (avatar và description)
-            // Giả định API trả về 'avatar' và 'description'
-            const avatarPath = data.avatar && data.avatar !== '' ? data.avatar : '../images/schwi.png'; 
-            profileAvatarMain.src = avatarPath;
-            profileAvatarNavbar.src = avatarPath;
-            avatarUrlInput.value = avatarPath; 
+            if (!user) {
+                console.error("Lỗi: Không có dữ liệu user");
+                return;
+            }
 
-            const userDescription = data.description && data.description !== '' ? data.description : 'Chưa có mô tả.'; 
-            descriptionTextarea.value = userDescription === 'Chưa có mô tả.' ? '' : userDescription; 
-            profileDescriptionContent.textContent = userDescription; 
+            // ✅ Gán ID đang xem profile
+            currentProfileUserId = user._id;
 
-            fetchStories(); // Fetch stories after getting user info
-        })
-        .catch(error => console.error("Lỗi khi lấy dữ liệu tài khoản:", error));
+            // ==== GÁN DỮ LIỆU VÀO GIAO DIỆN ====
+            profileFullName.textContent = user.username || "Người dùng";
+            profileUsername.textContent = user.username || "username";
+            storyNameElement.textContent = user.username || "username";
+            followersCountDisplay.textContent = user.followersCount || 0;
+            followingCountDisplay.textContent = user.followingCount || 0;
+            profileDescriptionContent.textContent = user.description || "Chưa có mô tả";
 
-    // Mảng tên người dùng và avatar mẫu (dùng cho bình luận)
+            // Avatar
+            if (user.avatar) {
+                profileMainAvatar.src = user.avatar;
+                navbarAvatarImg.src = user.avatar;
+                avatarPreview.src = user.avatar;
+            }
+
+            // Hiển thị follow nếu xem user khác
+            if (userIdInUrl && loggedInUserId && loggedInUserId !== user._id) {
+                followButton.style.display = "inline-block";
+                followButton.textContent = data.isFollowing ? "Đã theo dõi" : "Theo dõi";
+                followButton.classList.toggle("btn-success", data.isFollowing);
+                followButton.classList.toggle("btn-primary", !data.isFollowing);
+            } else {
+                followButton.style.display = "none";
+            }
+
+            // Load danh sách follow
+            fetchFollowingUsers(user._id);
+            fetchFollowersUsers(user._id);
+
+            // Load truyện của user
+            fetchStories(user._id);
+
+        } catch (err) {
+            console.error("Lỗi loadProfile:", err);
+        }
+    }
+
+
+    // Gọi hàm loadProfile khi trang được tải
+    loadProfile();
+
+    // Xử lý sự kiện click nút Follow/Unfollow
+    followButton.addEventListener('click', async () => {
+        if (!loggedInUserId) {
+            alert('Bạn cần đăng nhập để theo dõi người khác.');
+            window.location.href = '/login';
+            return;
+        }
+        if (currentProfileUserId === loggedInUserId) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/user/${currentProfileUserId}/follow`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                followButton.textContent = data.followed ? 'Đã theo dõi' : 'Theo dõi';
+                followButton.classList.toggle('btn-success', data.followed);
+                followButton.classList.toggle('btn-primary', !data.followed);
+                loadProfile(); // Tải lại để cập nhật số lượng followers
+            } else {
+                alert(data.error || 'Có lỗi xảy ra khi thực hiện hành động.');
+            }
+        } catch (error) {
+            console.error('Lỗi khi follow/unfollow:', error);
+            alert('Có lỗi xảy ra trong quá trình xử lý.');
+        }
+    });
+
+
+    // Mảng tên người dùng và avatar mẫu (dùng cho bình luận) - Giữ nguyên
     const usernames = ["Alice", "Bob", "Charlie", "David", "Eve", "Schwi", "Shiro", "Izuna"];
-    const avatars = ["../images/avt1.jpg", "../images/avt2.jpg", "../images/avt3.jpg", "../images/schwi.png", "../images/nền.jpg", "../images/avt10.jpg"];
+    const avatars = ["/images/avt1.jpg", "/images/avt2.jpg", "/images/avt3.jpg", "/images/schwi.png", "/images/nền.jpg", "/images/avt10.jpg"];
+
 
     // Hàm tạo ID ngẫu nhiên
     function generateId() {
@@ -124,33 +299,31 @@ document.addEventListener("DOMContentLoaded", function () {
         return avatars[Math.floor(Math.random() * avatars.length)];
     }
 
-    // Hàm tạo phần tử bình luận
-    function createCommentElement(commentText, username) {
-        const commentId = generateId();
+    // Hàm tạo phần tử bình luận (đã điều chỉnh để phù hợp CSS mới)
+    function createCommentElement(commentText, username, avatar, date) {
+        const commentId = generateId(); // Vẫn dùng ID ngẫu nhiên cho demo
         const comment = document.createElement("li");
-        comment.classList.add("comment");
+        comment.classList.add("comment-item"); // Thay đổi class
         comment.dataset.commentId = commentId;
         comment.innerHTML = `
+            <a href="#" class="avt">
+                <img src="${avatar || getRandomAvatar()}" alt="Avatar">
+            </a>
             <div class="comments-detail">
-                <div class="avt">
-                    <img src="${getRandomAvatar()}" alt="Avatar">
-                    <div class="nick-name">${username}</div>
-                </div>
-                <div class="comments-info">${commentText}</div>
-                <div class="comments-item">
-                    <span class="comment-date">${new Date().toLocaleString()}</span>
+                <a href="#" class="nick-name">${username || getRandomUsername()}</a>
+                <p class="comments-info">${commentText}</p>
+                <div class="comments-item-meta">
+                    <span class="comment-date">${date || new Date().toLocaleString()}</span>
                     <div class="comments-symbol">
-                        <div class="reply-btn"><i class="fas fa-reply"></i> (<span class="reply-count">0</span>)</div>
+                        <div class="reply-btn"><i class="fas fa-reply"></i> Phản hồi (<span class="reply-count">0</span>)</div>
                         <div class="delete-btn" style="color: red; cursor: pointer;"><i class="fas fa-trash"></i></div>
                     </div>
                 </div>
-                <div class="replies" style="display: none;"></div>
-                <div class="reply-form" style="display: none;">
-                    <form class="reply-form-inner row">
-                        <div class="col-10"><textarea type="text" class="reply-input" placeholder="Nhập phản hồi của bạn..." required></textarea></div>
-                        <div class="col-2"><button type="submit" class="send-reply"><i class="fas fa-paper-plane"></i></button></div>
-                    </form>
-                </div>
+                <div class="replies" id="replies-for-${commentId}"></div>
+                <form class="reply-form" style="display: none;" data-comment-id="${commentId}">
+                    <textarea placeholder="Nhập phản hồi của bạn..." required></textarea>
+                    <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                </form>
             </div>
         `;
 
@@ -158,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const replyCount = comment.querySelector(".reply-count");
         const repliesContainer = comment.querySelector(".replies");
         const replyForm = comment.querySelector(".reply-form");
-        const replyInput = replyForm.querySelector(".reply-input");
+        const replyInput = replyForm.querySelector("textarea"); // Sửa selector
         const deleteBtn = comment.querySelector(".delete-btn");
 
         deleteBtn.addEventListener("click", function () {
@@ -168,55 +341,49 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         replyBtn.addEventListener("click", function () {
-            replyForm.style.display = replyForm.style.display === "none" ? "block" : "none";
+            replyForm.style.display = replyForm.style.display === "none" ? "flex" : "none"; // Hiện/ẩn form reply, dùng flex
+            if (replyForm.style.display === "flex") {
+                replyInput.focus();
+            }
         });
 
         replyForm.addEventListener("submit", function (event) {
             event.preventDefault();
             const replyText = replyInput.value.trim();
             if (replyText === "") return;
-            const replyToReply = createReplyElement(replyText,getRandomUsername());
-            repliesContainer.appendChild(replyToReply);
+
+            const currentUserName = profileFullName.textContent || getRandomUsername();
+            const currentUserAvatar = profileMainAvatar.src || getRandomAvatar();
+
+            const replyElement = createReplyElement(replyText, currentUserName, currentUserAvatar, new Date().toLocaleString());
+            repliesContainer.appendChild(replyElement);
             replyForm.style.display = "none";
             replyCount.textContent = parseInt(replyCount.textContent) + 1;
-            repliesContainer.style.display = "block";
+            repliesContainer.style.display = "block"; // Đảm bảo container replies hiện ra
             replyInput.value = "";
         });
         return comment;
     }
 
-    // Hàm tạo phần tử phản hồi bình luận
-    function createReplyElement(replyText, username) {
+    // Hàm tạo phần tử phản hồi bình luận (đã điều chỉnh để phù hợp CSS mới)
+    function createReplyElement(replyText, username, avatar, date) {
         const reply = document.createElement("div");
-        reply.classList.add("comment", "reply");
+        reply.classList.add("reply"); // Sử dụng class 'reply'
         reply.innerHTML = `
+            <a href="#" class="avt">
+                <img src="${avatar || getRandomAvatar()}" alt="Avatar">
+            </a>
             <div class="comments-detail">
-                <div class="avt">
-                    <img src="${getRandomAvatar()}" alt="Avatar">
-                    <div class="nick-name">${username}</div>
-                </div>
-                <div class="comments-info">${replyText}</div>
-                <div class="comments-item">
-                    <span class="comment-date">${new Date().toLocaleString()}</span>
+                <a href="#" class="nick-name">${username || getRandomUsername()}</a>
+                <p class="comments-info">${replyText}</p>
+                <div class="comments-item-meta">
+                    <span class="comment-date">${date || new Date().toLocaleString()}</span>
                     <div class="comments-symbol">
-                        <div class="reply-btn"><i class="fas fa-reply"></i> (<span class="reply-count">0</span>)</div>
                         <div class="delete-btn" style="color: red; cursor: pointer;"><i class="fas fa-trash"></i></div>
                     </div>
                 </div>
-                <div class="replies" style="display: none;"></div>
-                <div class="reply-form" style="display: none;">
-                    <form class="reply-form-inner row">
-                        <div class="col-10"><textarea type="text" class="reply-input" placeholder="Nhập phản hồi của bạn..." required></textarea></div>
-                        <div class="col-2"><button type="submit" class="send-reply"><i class="fas fa-paper-plane"></i></button></div>
-                    </form>
-                </div>
             </div>
         `;
-        const replyBtn = reply.querySelector(".reply-btn");
-        const replyCount = reply.querySelector(".reply-count");
-        const repliesContainer = reply.querySelector(".replies");
-        const replyForm = reply.querySelector(".reply-form");
-        const replyInput = replyForm.querySelector(".reply-input");
         const deleteBtn = reply.querySelector(".delete-btn");
 
         deleteBtn.addEventListener("click", function () {
@@ -225,21 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        replyBtn.addEventListener("click", function () {
-            replyForm.style.display = replyForm.style.display === "none" ? "block" : "none";
-        });
-
-        replyForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-            const replyText = replyInput.value.trim();
-            if (replyText === "") return;
-            const replyToReply = createReplyElement(replyText,getRandomUsername());
-            repliesContainer.appendChild(replyToReply);
-            replyForm.style.display = "none";
-            replyCount.textContent = parseInt(replyCount.textContent) + 1;
-            repliesContainer.style.display = "block";
-            replyInput.value = "";
-        });
         return reply;
     }
 
@@ -248,10 +400,27 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         const commentText = commentInput.value.trim();
         if (commentText === "") return;
-        const username = profileName.textContent || getRandomUsername(); // Get username
-        const commentElement = createCommentElement(commentText, username);
-        commentsList.appendChild(commentElement);
+
+        const currentUserName = profileFullName.textContent || getRandomUsername();
+        const currentUserAvatar = profileMainAvatar.src || getRandomAvatar();
+
+        const commentElement = createCommentElement(commentText, currentUserName, currentUserAvatar, new Date().toLocaleString());
+        commentsList.prepend(commentElement); // Thêm comment mới lên đầu
         commentInput.value = "";
+        commentInput.style.height = 'auto'; // Reset chiều cao textarea sau khi gửi
+    });
+
+    // Tự động điều chỉnh chiều cao textarea bình luận chính
+    commentInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    // Tự động điều chỉnh chiều cao cho tất cả textarea phản hồi
+    document.addEventListener('input', function(event) {
+        if (event.target.matches('.reply-form textarea')) {
+            event.target.style.height = 'auto';
+            event.target.style.height = (event.target.scrollHeight) + 'px';
+        }
     });
 
     // Xử lý chuyển đổi tab
@@ -265,55 +434,55 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Kích hoạt tab đầu tiên ('gioithieu') khi tải trang
+    // Đảm bảo tab 'gioithieu' và section tương ứng được kích hoạt ban đầu
+    const firstTab = document.querySelector('.tab[data-tab="gioithieu"]');
+    if (firstTab) {
+        firstTab.click(); // Giả lập click để kích hoạt tab và section
+    }
+
     // Xử lý gửi form chỉnh sửa thông tin cá nhân
     editProfileForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        // Thu thập dữ liệu từ form
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const phone = document.getElementById('phone').value;
-        const avatarUrl = avatarUrlInput.value; // Lấy URL avatar mới
-        const description = descriptionTextarea.value; // Lấy mô tả mới
+        const description = descriptionTextarea.value;
 
-        // Tạo đối tượng JSON để gửi dữ liệu
-        const updateData = {
-            username: name,
-            email: email,
-            phone: phone,
-            avatar: avatarUrl, // Thêm avatar
-            description: description // Thêm description
-        };
+        const formData = new FormData(); // Tạo FormData
+        formData.append('username', name);
+        formData.append('email', email);
+        formData.append('phone', phone);
+        formData.append('description', description);
+
+        const avatarFile = document.getElementById('avatarFile').files[0];
+        if (avatarFile) {
+            formData.append('avatarFile', avatarFile); // Thêm file vào FormData
+        } else {
+            const currentAvatarSrc = profileMainAvatar.src;
+            if (!currentAvatarSrc.includes('schwi.png') && !currentAvatarSrc.includes('default-avatar.png')) {
+                const url = new URL(currentAvatarSrc);
+                formData.append('avatar', url.pathname);
+            } else {
+                formData.append('avatar', '/images/schwi.png'); // Hoặc '/images/default-avatar.png'
+            }
+        }
+
 
         try {
-            // Gửi yêu cầu PUT đến backend để cập nhật thông tin
-            const response = await fetch('/api/user/update-profile', { 
-                method: 'PUT', // Hoặc 'POST' tùy thuộc vào API của bạn
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updateData)
+            const response = await fetch('/api/user/update-profile', {
+                method: 'PUT',
+                body: formData
             });
             const data = await response.json();
 
-            // Xử lý phản hồi
-            if (response.ok && data.success) { // Giả sử API trả về { success: true, message: "..." }
+            if (response.ok && data.success) {
                 successMessage.textContent = data.message || "Cập nhật thông tin thành công!";
                 successMessage.style.display = 'block';
                 errorMessage.style.display = 'none';
 
-                // Cập nhật thông tin hiển thị trên trang ngay lập tức
-                profileName.textContent = name;
-                profileFullName.textContent = name;
-                profileUsername.textContent = name;
-                storyNameElement.textContent = name;
-                
-                // Cập nhật avatar trên trang (sử dụng URL từ input, nếu trống thì dùng default)
-                profileAvatarMain.src = avatarUrl && avatarUrl !== '' ? avatarUrl : '../images/schwi.png';
-                profileAvatarNavbar.src = avatarUrl && avatarUrl !== '' ? avatarUrl : '../images/schwi.png';
-
-                // Cập nhật mô tả ở tab "Giới thiệu" (nếu trống thì dùng default)
-                profileDescriptionContent.textContent = description && description !== '' ? description : 'Chưa có mô tả.';
+                loadProfile(); // Tải lại profile để cập nhật avatar và thông tin mới
 
                 setTimeout(() => {
                     successMessage.style.display = 'none';

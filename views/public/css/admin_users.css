@@ -185,7 +185,7 @@
     background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
     justify-content: center; /* Căn giữa modal theo chiều ngang */
     align-items: center; /* Căn giữa modal theo chiều dọc */
-    display: flex; /* Dùng flex để căn giữa, display:none sẽ override */
+    /* display: flex; /* Dùng flex để căn giữa, display:none sẽ override */
 }
 
 .modal-content {

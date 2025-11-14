@@ -1,77 +1,104 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const registerForm = document.getElementById("registerForm");
-    const messageBox = document.getElementById("formMessage");
-    const emailError = document.getElementById("email-error");
-    const passwordError = document.getElementById("password-error");
-    const confirmPasswordError = document.getElementById("confirm-password-error");
+document.addEventListener('DOMContentLoaded', function() { 
+    const registerForm = document.getElementById('registerForm');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    const confirmPasswordError = document.getElementById('confirm-password-error');
 
-    registerForm.addEventListener("submit", async (event) => {
+    // 🆕 Tạo thêm phần tử lỗi cho số điện thoại (nếu chưa có trong HTML)
+    let phoneError = document.getElementById('phone-error');
+    if (!phoneError) {
+        phoneError = document.createElement('div');
+        phoneError.id = 'phone-error';
+        phoneError.className = 'error';
+        phoneError.style.display = 'none';
+        phoneError.style.color = 'red';
+        const phoneInput = document.getElementById('phone');
+        phoneInput.insertAdjacentElement('afterend', phoneError);
+    }
+
+    // Hàm hiển thị lỗi
+    function showError(element, message) {
+        element.textContent = message;
+        element.style.display = 'block';
+    }
+
+    // Hàm ẩn lỗi
+    function hideError(element) {
+        element.style.display = 'none';
+    }
+
+    registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const username = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const confirmPassword = document.getElementById("confirmPassword").value.trim();
+        // Ẩn lỗi cũ
+        hideError(emailError);
+        hideError(passwordError);
+        hideError(confirmPasswordError);
+        hideError(phoneError);
 
-        // Reset lỗi
-        emailError.style.display = "none";
-        passwordError.style.display = "none";
-        confirmPasswordError.style.display = "none";
-        messageBox.style.display = "none";
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
-        // Kiểm tra đầy đủ thông tin
-        if (!username || !email || !phone || !password || !confirmPassword) {
-            showMessage("Vui lòng điền đầy đủ thông tin!", "error");
-            return;
-        }
+        let isValid = true;
 
-        // Kiểm tra email hợp lệ
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // ✅ Validate email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
         if (!emailRegex.test(email)) {
-            emailError.textContent = "Email không hợp lệ.";
-            emailError.style.display = "block";
-            return;
+            showError(emailError, 'Email không hợp lệ. Vui lòng sử dụng email @gmail.com.');
+            isValid = false;
         }
 
-        // Kiểm tra mật khẩu
-        if (password.length < 6) {
-            passwordError.textContent = "Mật khẩu phải có ít nhất 6 ký tự!";
-            passwordError.style.display = "block";
-            return;
+        // ✅ Validate số điện thoại
+        // Cho phép dạng: 10 chữ số, bắt đầu bằng 0 (VD: 090xxxxxxx)
+        const phoneRegex = /^(0[0-9]{9})$/;
+        if (!phoneRegex.test(phone)) {
+            showError(phoneError, 'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số, bắt đầu bằng số 0.');
+            isValid = false;
         }
 
+        // ✅ Validate mật khẩu mạnh
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            showError(passwordError, 'Mật khẩu phải có ít nhất 8 ký tự, gồm 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt.');
+            isValid = false;
+        }
+
+        // ✅ Kiểm tra mật khẩu khớp
         if (password !== confirmPassword) {
-            confirmPasswordError.textContent = "Mật khẩu và nhập lại mật khẩu không khớp!";
-            confirmPasswordError.style.display = "block";
-            return;
+            showError(confirmPasswordError, 'Mật khẩu và nhập lại mật khẩu không khớp!');
+            isValid = false;
         }
 
-        // Gửi API register
+        if (!isValid) return;
+
+        // ✅ Gửi dữ liệu hợp lệ
+        const data = { username: name, email, phone, password };
+
         try {
-            const response = await fetch("/api/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, phone, password })
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
 
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage(result.message || "Đăng ký thành công!", "success");
-                setTimeout(() => window.location.href = "/login", 1500);
+                alert(result.message || 'Đăng ký thành công!');
+                window.location.href = '/login';
             } else {
-                showMessage(result.error || "Có lỗi xảy ra khi đăng ký!", "error");
+                if (result.error && result.error.includes('password')) {
+                    showError(passwordError, result.error);
+                } else {
+                    alert(result.error || 'Có lỗi xảy ra khi đăng ký!');
+                }
             }
-        } catch (err) {
-            console.error("Lỗi đăng ký:", err);
-            showMessage("Không thể kết nối máy chủ. Vui lòng thử lại!", "error");
+        } catch (error) {
+            console.error('Lỗi:', error);
+            alert('Có lỗi xảy ra trong quá trình đăng ký.');
         }
     });
-
-    function showMessage(text, type) {
-        messageBox.textContent = text;
-        messageBox.style.color = type === "error" ? "red" : "green";
-        messageBox.style.display = "block";
-    }
 });

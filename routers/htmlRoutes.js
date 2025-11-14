@@ -21,6 +21,9 @@ router.get('/story/:id/chapter/:chapterId', storyController.getChapter);
 router.get('/create-chapter', authMiddleware, storyController.createChapter);
 router.get('/editchapter', authMiddleware, storyController.getEditChapter);
 
+router.get('/account', authMiddleware, storyController.getAccount);
+router.get('/account/:userId', storyController.getUserProfile);
+
 router.get('/my-story', authMiddleware, storyController.getMyStory);
 router.get('/login', storyController.getLogin);
 router.get('/register', storyController.getRegister);
@@ -31,5 +34,5 @@ router.use((req, res) => {
   res.status(404).render("404"); 
 });
 
-
 module.exports = router;
+

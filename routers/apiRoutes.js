@@ -8,12 +8,24 @@ const path = require('path');
 
 // ==================== MULTER CONFIG ====================
 const storage = multer.diskStorage({
-    destination: './views/public/images/',
+    destination: path.join(__dirname, '..', 'views', 'public', 'images'),
     filename: (req, file, cb) => {
         cb(null, 'story-' + Date.now() + path.extname(file.originalname));
     }
 });
 const upload = multer({ storage });
+
+// ==================== MULTER CONFIG for Avatars ====================
+// Thêm cấu hình Multer riêng cho avatar để lưu vào cùng thư mục
+const avatarStorage = multer.diskStorage({
+    destination: path.join(__dirname, '..', 'views', 'public', 'images'),
+    filename: (req, file, cb) => {
+        // Đảm bảo req.session.user._id tồn tại khi upload avatar
+        const userId = req.session.user ? req.session.user._id : 'guest';
+        cb(null, 'avatar-' + userId + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+const uploadAvatar = multer({ storage: avatarStorage });
 
 // ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = (req, res, next) => {
@@ -77,6 +89,14 @@ router.get('/logout', apiController.logout);
 router.post('/register', apiController.register);
 router.post('/login', apiController.login);
 router.get('/user/account-info', authMiddleware, apiController.getAccountInfo);
+router.put('/user/update-profile', authMiddleware, uploadAvatar.single('avatarFile'), apiController.updateUserProfile);
+
+//FOLLOW USER
+router.get("/account/:userId", apiController.getUserProfile);
+router.get("/storiesbyuser", apiController.getStoriesByUser);
+router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); // Theo dõi/Bỏ theo dõi user
+router.get('/user/:userId/following', apiController.getFollowingUsers); // Lấy danh sách đang theo dõi của user
+router.get('/user/:userId/followers', apiController.getFollowersUsers); // Lấy danh sách người theo dõi của user
 
 
 module.exports = router;
