@@ -26,6 +26,12 @@ router.get('/account/:userId', storyController.getUserProfile);
 
 router.get('/my-story', authMiddleware, storyController.getMyStory);
 router.get('/login', storyController.getLogin);
+router.get('/forgot_password', (req, res) => {
+    res.render('forgot_password');
+});
+router.get('/reset-password/:token', (req, res) => {
+    res.render('reset_password');
+});
 router.get('/register', storyController.getRegister);
 router.get('/account', authMiddleware, storyController.getAccount);
 router.get('/search', storyController.getSearch);

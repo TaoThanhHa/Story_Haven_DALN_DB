@@ -4,6 +4,8 @@ const Chapter = require("../models/Chapter");
 const Follow = require("../models/Follow");
 const User = require("../models/User");
 const mongoose = require("mongoose");
+const nodemailer = require('nodemailer');
+const crypto = require('crypto'); 
 
 const apiController = {
 
@@ -316,6 +318,89 @@ logout: (req, res) => {
   }
 },
 
+// ==================== USER AUTH / PASSWORD RESET ====================
+  forgotPassword: async (req, res) => { 
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Vui lòng nhập email.' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            // Tránh tiết lộ email có tồn tại hay không vì lý do bảo mật
+            return res.status(200).json({ message: 'Nếu email của bạn tồn tại, một liên kết đặt lại mật khẩu đã được gửi.' });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000*24; // Hạn trong 24h
+        await user.save();
+
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const resetURL = `http://${req.headers.host}/reset-password/${resetToken}`;
+
+        const mailOptions = {
+            to: user.email,
+            from: process.env.EMAIL_USER,
+            subject: 'Đặt lại mật khẩu StoryHaven của bạn',
+            html: `<p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản StoryHaven của mình.</p>
+                   <p>Vui lòng nhấp vào liên kết sau để đặt lại mật khẩu:</p>
+                   <a href="${resetURL}">${resetURL}</a>
+                   <p>Liên kết này sẽ hết hạn trong 1 giờ.</p>
+                   <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này và mật khẩu của bạn sẽ không thay đổi.</p>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ message: 'Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.' });
+
+    } catch (err) {
+        console.error('Lỗi trong forgotPassword:', err);
+        res.status(500).json({ error: 'Đã xảy ra lỗi hệ thống khi gửi email đặt lại mật khẩu.' });
+    }
+  }, 
+
+  resetPassword: async (req, res) => { 
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+        return res.status(400).json({ error: 'Vui lòng nhập mật khẩu mới.' });
+    }
+
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Mật khẩu của bạn đã được cập nhật thành công.' });
+
+    } catch (err) {
+        console.error('Lỗi trong resetPassword:', err);
+        res.status(500).json({ error: 'Đã xảy ra lỗi hệ thống khi đặt lại mật khẩu.' });
+    }
+  },
 
   // ✅ Lấy thông tin tài khoản
   getAccountInfo: async (req, res) => {
