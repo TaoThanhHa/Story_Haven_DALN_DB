@@ -8,33 +8,40 @@ const mongoose = require("mongoose");
 const apiController = {
 
   // ==================== STORY ====================
-  getStories: async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;  // Trang hiện tại
-      const limit = 12;                            // Mỗi trang 12 truyện
-      const skip = (page - 1) * limit;
+getStories: async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 12;
 
-      const [stories, total] = await Promise.all([
-        Story.find({ control: true })
-          .populate("userId", "username email")
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit),
-        Story.countDocuments({ control: true })
-      ]);
+    // 1️⃣ Lấy tất cả truyện control = true
+    let stories = await Story.find({ control: true })
+      .populate("userId", "username email")
+      .lean(); // lean() để trả về plain object
 
-      res.status(200).json({
-        success: true,
-        stories,
-        total,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-      });
-    } catch (err) {
-      console.error("getStories:", err);
-      res.status(500).json({ error: "Không thể tải danh sách truyện" });
-    }
-  },
+    // 2️⃣ Sort giống my_story
+    stories.sort((a, b) => {
+      const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
+      const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
+      return dateB - dateA;
+    });
+
+    // 3️⃣ Phân trang
+    const total = stories.length;
+    const totalPages = Math.ceil(total / limit);
+    const paginatedStories = stories.slice((page - 1) * limit, page * limit);
+
+    res.status(200).json({
+      success: true,
+      stories: paginatedStories,
+      total,
+      totalPages,
+      currentPage: page
+    });
+  } catch (err) {
+    console.error("getStories:", err);
+    res.status(500).json({ error: "Không thể tải danh sách truyện" });
+  }
+},
 
   getStory: async (req, res) => {
     try {
@@ -191,6 +198,7 @@ const apiController = {
       res.status(500).json({ error: "Không thể tải danh sách truyện theo thể loại" });
     }
   },
+
   // ==================== USER ====================
   // ✅ Đăng nhập
   register: async (req, res) => {
@@ -391,36 +399,40 @@ logout: (req, res) => {
   },
 
   // ✅ Lấy truyện theo user (ưu tiên userId từ query)
-  getStoriesByUser: async (req, res) => {
-    try {
-      let userId = req.query.userId;
+getStoriesByUser: async (req, res) => {
+  try {
+    let userId = req.query.userId;
 
-      // Nếu không truyền userId thì dùng user đang đăng nhập
-      if (!userId) {
-        if (!req.session.user) {
-          return res.status(401).json({ error: "Chưa đăng nhập" });
-        }
-        userId = req.session.user._id;
-      }
-
-      // Lấy truyện theo userId
-      const filter = { author: userId };
-
-      // Nếu đang xem profile người khác → chỉ show truyện đã publish
-      if (!req.session.user || req.session.user._id !== userId) {
-        filter.status = "published";
-      }
-
-      const stories = await Story.find(filter).sort({ createdAt: -1 });
-
-
-      return res.json(stories);
-    } catch (err) {
-      console.error("Lỗi getStoriesByUser:", err);
-      return res.status(500).json({ error: "Lỗi server khi lấy truyện" });
+    if (!userId) {
+      if (!req.session.user) return res.status(401).json({ error: "Chưa đăng nhập" });
+      userId = req.session.user._id;
     }
-  },
 
+    const loggedInUserId = req.session.user ? String(req.session.user._id) : null;
+    const targetUserId = String(userId);
+
+    const filter = { userId: targetUserId };
+
+    // Nếu không phải chủ tài khoản → chỉ show published
+    if (loggedInUserId !== targetUserId) filter.control = 1;
+
+    const stories = await Story.find(filter).lean();
+
+    // Thêm latestChapter
+    const storiesWithLatest = await Promise.all(stories.map(async story => {
+      const latestChapter = await Chapter.findOne({ storyId: story._id })
+                                         .sort({ updatedAt: -1 })
+                                         .lean();
+      return { ...story, latestChapter: latestChapter || null };
+    }));
+
+    res.json(storiesWithLatest);
+
+  } catch (err) {
+    console.error("Lỗi getStoriesByUser:", err);
+    res.status(500).json({ error: "Lỗi server khi lấy truyện" });
+  }
+},
 
   // Theo dõi/Bỏ theo dõi một người dùng
   toggleUserFollow: async (req, res) => {

@@ -1,9 +1,15 @@
-body {
+body, nav {
   font-family: "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   background-color: #f8f9fa;
   color: #212529;
   margin: 0;
   padding: 0;
+}
+
+a{
+  color: #00203fff;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* Navbar */

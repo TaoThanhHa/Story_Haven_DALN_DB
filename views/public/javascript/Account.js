@@ -72,15 +72,19 @@ document.addEventListener("DOMContentLoaded", function () {
     // Hàm fetch stories (cần chỉnh sửa để lấy stories của userId cụ thể)
     const fetchStories = async (userId) => {
         try {
-            const url = userId ? `/api/storiesbyuser?userId=${userId}` : '/api/storiesbyuser';
-            const response = await fetch(url);
+            // Nếu userId được truyền → lấy stories của user đó, không cần auth
+            const url = userId ? `/api/user/${userId}/stories` : '/api/storiesbyuser';
+            const response = await fetch(url, { credentials: "include" });
+            if (!response.ok) {
+                throw new Error("Không thể lấy danh sách truyện");
+            }
             const stories = await response.json();
 
             let publishedCount = 0;
             let draftCount = 0;
 
             stories.forEach(story => {
-                if (story.status === 'published') { // Sửa lại thành 'published' nếu đó là trạng thái đã xuất bản
+                if (story.status === 'published') {
                     publishedCount++;
                 } else {
                     draftCount++;
@@ -96,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 workList.innerHTML = '<p class="text-muted text-center mt-3">Chưa có truyện nào.</p>';
                 return;
             }
+
             stories.forEach(story => {
                 const workItem = document.createElement('div');
                 workItem.classList.add('work-item');
@@ -109,10 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </a>
                         <p><i class="fas fa-eye"></i> 0 <i class="fas fa-star"></i> 0 <i class="fas fa-list"></i> 0</p>
                         <p class="work-summary">${story.description ? story.description.substring(0, 50) + '...' : 'No description'}</p>
-                        <div class="work-tags">
-                            <span class="badge bg-secondary">${story.category ? story.category : 'No category'}</span>
-                        </div>
-                        <p class="text-muted">${story.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}</p> <!-- Đã sửa -->
+                        <p class="text-muted">${story.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}</p>
                     </div>
                 `;
                 workList.appendChild(workItem);
@@ -182,6 +184,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const pathParts = window.location.pathname.split("/");
             const userIdInUrl = pathParts[1] === "account" ? pathParts[2] : null;
 
+            // Ẩn/hiện tab Cài đặt khi người dùng truy cập đúng profile
+            // Ẩn / hiện tab Cài đặt
+            if (loggedInUserId && loggedInUserId === (userIdInUrl || loggedInUserId)) {
+                settingsTab.style.display = "inline-block";
+            } else {
+                settingsTab.style.display = "none";
+            }
+
+
             // ✅ API tương ứng
             const url = userIdInUrl ? `/api/account/${userIdInUrl}` : `/api/user/account-info`;
 
@@ -207,8 +218,8 @@ document.addEventListener("DOMContentLoaded", function () {
             profileFullName.textContent = user.username || "Người dùng";
             profileUsername.textContent = user.username || "username";
             storyNameElement.textContent = user.username || "username";
-            followersCountDisplay.textContent = user.followersCount || 0;
-            followingCountDisplay.textContent = user.followingCount || 0;
+            followersCountDisplay.textContent = data.followersCount || user.followers?.length || 0;
+            followingCountDisplay.textContent = data.followingCount || user.following?.length || 0;
             profileDescriptionContent.textContent = user.description || "Chưa có mô tả";
 
             // Avatar
@@ -244,37 +255,45 @@ document.addEventListener("DOMContentLoaded", function () {
     // Gọi hàm loadProfile khi trang được tải
     loadProfile();
 
-    // Xử lý sự kiện click nút Follow/Unfollow
     followButton.addEventListener('click', async () => {
         if (!loggedInUserId) {
             alert('Bạn cần đăng nhập để theo dõi người khác.');
             window.location.href = '/login';
             return;
         }
-        if (currentProfileUserId === loggedInUserId) {
-            return;
-        }
+
+        if (currentProfileUserId === loggedInUserId) return;
 
         try {
             const response = await fetch(`/api/user/${currentProfileUserId}/follow`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
-            const data = await response.json();
 
-            if (data.success) {
-                followButton.textContent = data.followed ? 'Đã theo dõi' : 'Theo dõi';
-                followButton.classList.toggle('btn-success', data.followed);
-                followButton.classList.toggle('btn-primary', !data.followed);
-                loadProfile(); // Tải lại để cập nhật số lượng followers
-            } else {
-                alert(data.error || 'Có lỗi xảy ra khi thực hiện hành động.');
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'Lỗi follow.');
+                return;
             }
+
+            // Cập nhật nút follow
+            followButton.textContent = data.followed ? "Đã theo dõi" : "Theo dõi";
+            followButton.classList.toggle('btn-success', data.followed);
+            followButton.classList.toggle('btn-primary', !data.followed);
+
+            // Cập nhật số followers NGAY LẬP TỨC (không cần loadProfile())
+            let currentFollowers = parseInt(followersCountDisplay.textContent);
+
+            if (data.followed) currentFollowers++;
+            else currentFollowers--;
+
+            followersCountDisplay.textContent = currentFollowers;
+
+            // Cập nhật lại danh sách followers
+            fetchFollowersUsers(currentProfileUserId);
+
         } catch (error) {
-            console.error('Lỗi khi follow/unfollow:', error);
-            alert('Có lỗi xảy ra trong quá trình xử lý.');
+            console.error('Lỗi follow:', error);
         }
     });
 

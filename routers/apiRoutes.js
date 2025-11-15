@@ -89,14 +89,14 @@ router.get('/logout', apiController.logout);
 router.post('/register', apiController.register);
 router.post('/login', apiController.login);
 router.get('/user/account-info', authMiddleware, apiController.getAccountInfo);
+router.get('/user/:userId/stories', apiController.getStoriesByUser);
 router.put('/user/update-profile', authMiddleware, uploadAvatar.single('avatarFile'), apiController.updateUserProfile);
 
 //FOLLOW USER
+
 router.get("/account/:userId", apiController.getUserProfile);
-router.get("/storiesbyuser", apiController.getStoriesByUser);
-router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); // Theo dõi/Bỏ theo dõi user
-router.get('/user/:userId/following', apiController.getFollowingUsers); // Lấy danh sách đang theo dõi của user
-router.get('/user/:userId/followers', apiController.getFollowersUsers); // Lấy danh sách người theo dõi của user
+router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); 
+router.get('/user/:userId/following', apiController.getFollowingUsers); 
 
 
 module.exports = router;
