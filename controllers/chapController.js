@@ -1,3 +1,4 @@
+const Story = require("../models/Story");
 const Chapter = require("../models/Chapter");
 const ChapterView = require("../models/ChapterView");
 const ChapterVote = require("../models/ChapterVote");
@@ -17,32 +18,31 @@ const chapController = {
     }
   },
 
-  createChapter: async (req, res) => {
+createChapter: async (req, res) => {
   try {
     const { storyId, title, content } = req.body;
+    if (!storyId || !title || !content)
+      return res.status(400).json({ error: "Thiếu dữ liệu đầu vào!" });
 
-    // Lấy số chương lớn nhất hiện có
-    const lastChapter = await Chapter.findOne({ storyId })
-      .sort({ chapter_number: -1 })
-      .lean();
+    const story = await Story.findById(storyId);
+    if (!story) return res.status(404).json({ error: "Không tìm thấy truyện!" });
+    if (story.status === "completed")
+      return res.status(403).json({ error: "Truyện đã hoàn thành, không thể thêm chương!" });
 
+    // Lấy số chapter_number lớn nhất hiện có (nếu muốn)
+    const lastChapter = await Chapter.findOne({ storyId }).sort({ chapter_number: -1 }).lean();
     const nextNumber = lastChapter ? lastChapter.chapter_number + 1 : 1;
 
-    const newChapter = new Chapter({
-      storyId,
-      title,
-      content,
-      chapter_number: nextNumber,
-    });
-
+    const newChapter = new Chapter({ storyId, title, content, chapter_number: nextNumber });
     await newChapter.save();
 
-    res.status(201).json({ success: true, chapter: newChapter });
+    return res.status(201).json({ success: true, chapter: newChapter });
+
   } catch (err) {
     console.error("addChapter:", err);
     res.status(500).json({ success: false, error: "Lỗi khi thêm chương" });
   }
-  },
+},
 
   updateChapter: async (req, res) => {
     try {

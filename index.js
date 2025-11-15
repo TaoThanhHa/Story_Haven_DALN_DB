@@ -20,6 +20,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Session
 app.use(session({
+  name: 'storyhaven.sid',
+  secret: 'your-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    sameSite: 'lax', 
+  },
     name: 'storyhaven.sid',
     secret: 'your-session-secret',
     resave: false,

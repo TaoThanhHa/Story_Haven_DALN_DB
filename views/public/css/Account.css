@@ -893,3 +893,17 @@ textarea#commentInput {
         margin-bottom: 5px;
     }
 }
+
+.story-list .story-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+.story-list .story-item:hover {
+    background: #eef5ff;
+}
+.story-stats {
+    font-size: 0.9rem;
+}

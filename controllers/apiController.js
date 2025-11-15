@@ -10,33 +10,40 @@ const crypto = require('crypto');
 const apiController = {
 
   // ==================== STORY ====================
-  getStories: async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;  // Trang hiện tại
-      const limit = 12;                            // Mỗi trang 12 truyện
-      const skip = (page - 1) * limit;
+getStories: async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 12;
 
-      const [stories, total] = await Promise.all([
-        Story.find({ control: true })
-          .populate("userId", "username email")
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit),
-        Story.countDocuments({ control: true })
-      ]);
+    // 1️⃣ Lấy tất cả truyện control = true
+    let stories = await Story.find({ control: true })
+      .populate("userId", "username email")
+      .lean(); // lean() để trả về plain object
 
-      res.status(200).json({
-        success: true,
-        stories,
-        total,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-      });
-    } catch (err) {
-      console.error("getStories:", err);
-      res.status(500).json({ error: "Không thể tải danh sách truyện" });
-    }
-  },
+    // 2️⃣ Sort giống my_story
+    stories.sort((a, b) => {
+      const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
+      const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
+      return dateB - dateA;
+    });
+
+    // 3️⃣ Phân trang
+    const total = stories.length;
+    const totalPages = Math.ceil(total / limit);
+    const paginatedStories = stories.slice((page - 1) * limit, page * limit);
+
+    res.status(200).json({
+      success: true,
+      stories: paginatedStories,
+      total,
+      totalPages,
+      currentPage: page
+    });
+  } catch (err) {
+    console.error("getStories:", err);
+    res.status(500).json({ error: "Không thể tải danh sách truyện" });
+  }
+},
 
   getStory: async (req, res) => {
     try {
@@ -193,6 +200,7 @@ const apiController = {
       res.status(500).json({ error: "Không thể tải danh sách truyện theo thể loại" });
     }
   },
+
   // ==================== USER ====================
   // ✅ Đăng nhập
   register: async (req, res) => {
@@ -434,38 +442,82 @@ logout: (req, res) => {
     try {
       const { userId } = req.params;
 
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+      // Nếu không có params userId -> lấy user đang login
+      const targetId = userId || req.session.user?._id;
+
+      if (!targetId) {
+        return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
       }
 
-      // Populate following và followers để có thể đếm số lượng
-      const userProfile = await User.findById(userId)
-                                    .select("-password")
-                                    .populate('following', 'username avatar') // Lấy username và avatar của người đang theo dõi
-                                    .populate('followers', 'username avatar'); // Lấy username và avatar của người theo dõi mình
+      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(400).json({ success: false, message: "User ID không hợp lệ" });
+      }
 
-      if (!userProfile) {
-        return res.status(404).json({ error: "Không tìm thấy người dùng." });
+      const user = await User.findById(targetId)
+        .select("-password")
+        .populate("followers", "username avatar")
+        .populate("following", "username avatar");
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "Không tìm thấy user" });
       }
 
       let isFollowing = false;
-      if (req.session.user && req.session.user._id !== userId) { // Nếu có user đăng nhập và không phải profile của chính mình
-        const currentUser = await User.findById(req.session.user._id);
-        isFollowing = currentUser.following.includes(userProfile._id);
+
+      if (req.session.user && req.session.user._id !== String(user._id)) {
+        const me = await User.findById(req.session.user._id);
+        isFollowing = me.following.includes(user._id);
       }
 
       res.json({
-        ...userProfile.toObject(),
-        followingCount: userProfile.following.length,
-        followersCount: userProfile.followers.length,
-        isFollowing: isFollowing // Thêm trạng thái theo dõi từ phía người dùng hiện tại
+        success: true,
+        user,
+        followers: user.followers.length,
+        following: user.following.length,
+        isFollowing
       });
 
     } catch (err) {
-      console.error("getUserProfile error:", err);
-      res.status(500).json({ error: "Lỗi server khi lấy thông tin người dùng." });
+      console.error("getUserProfile API error:", err);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     }
   },
+
+  // ✅ Lấy truyện theo user (ưu tiên userId từ query)
+getStoriesByUser: async (req, res) => {
+  try {
+    let userId = req.query.userId;
+
+    if (!userId) {
+      if (!req.session.user) return res.status(401).json({ error: "Chưa đăng nhập" });
+      userId = req.session.user._id;
+    }
+
+    const loggedInUserId = req.session.user ? String(req.session.user._id) : null;
+    const targetUserId = String(userId);
+
+    const filter = { userId: targetUserId };
+
+    // Nếu không phải chủ tài khoản → chỉ show published
+    if (loggedInUserId !== targetUserId) filter.control = 1;
+
+    const stories = await Story.find(filter).lean();
+
+    // Thêm latestChapter
+    const storiesWithLatest = await Promise.all(stories.map(async story => {
+      const latestChapter = await Chapter.findOne({ storyId: story._id })
+                                         .sort({ updatedAt: -1 })
+                                         .lean();
+      return { ...story, latestChapter: latestChapter || null };
+    }));
+
+    res.json(storiesWithLatest);
+
+  } catch (err) {
+    console.error("Lỗi getStoriesByUser:", err);
+    res.status(500).json({ error: "Lỗi server khi lấy truyện" });
+  }
+},
 
   // Theo dõi/Bỏ theo dõi một người dùng
   toggleUserFollow: async (req, res) => {

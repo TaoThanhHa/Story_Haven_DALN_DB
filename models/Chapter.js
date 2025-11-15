@@ -14,7 +14,7 @@ const chapterSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🧠 Tự động set số chương khi thêm mới
+// Tự động set chapter_number
 chapterSchema.pre("save", async function (next) {
   if (this.isNew) {
     const Chapter = mongoose.model("Chapter");
@@ -26,7 +26,7 @@ chapterSchema.pre("save", async function (next) {
   next();
 });
 
-// 🧹 Dồn lại số thứ tự sau khi xóa
+// Sắp xếp lại chapter_number sau khi xóa
 chapterSchema.post("findOneAndDelete", async function (doc) {
   if (doc) {
     const Chapter = mongoose.model("Chapter");
@@ -40,5 +40,4 @@ chapterSchema.post("findOneAndDelete", async function (doc) {
   }
 });
 
-const Chapter = mongoose.model("Chapter", chapterSchema);
-module.exports = Chapter;
+module.exports = mongoose.model("Chapter", chapterSchema);

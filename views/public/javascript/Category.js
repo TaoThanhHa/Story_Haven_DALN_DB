@@ -19,15 +19,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const res = await fetch(`/api/stories/category?category=${encodeURIComponent(category)}`);
     if (!res.ok) throw new Error("Lỗi kết nối API");
-    const stories = await res.json();
+    let stories = await res.json();
+
+    // 🔹 Chỉ lấy truyện control = 1
+    stories = stories.filter(s => s.control === 1);
+
+    // 🔹 Sắp xếp theo thời gian cập nhật mới nhất (latestChapter > updatedAt > createdAt)
+    stories.sort((a, b) => {
+      const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
+      const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
+      return (dateB.getTime() || 0) - (dateA.getTime() || 0); // mới nhất trước
+    });
 
     resultsContainer.innerHTML = "";
 
-    if (!Array.isArray(stories) || stories.length === 0) {
+    if (!stories.length) {
       noResults.style.display = "block";
       return;
     }
-
     noResults.style.display = "none";
 
     for (const story of stories) {
@@ -46,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <p class="card-text text-muted small">
                 <i class="fa fa-eye"></i> <span class="story-views" data-id="${story._id}">0</span>
                 <i class="fa fa-star"></i> <span class="story-votes">0</span>
-              <i class="fa fa-bars"></i> <span class="story-chapters">0</span>
+                <i class="fa fa-bars"></i> <span class="story-chapters">0</span>
               </p>
             </div>
           </div>
@@ -54,6 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
 
       resultsContainer.appendChild(col);
+
       // ✅ VIEW
       fetch(`/api/story/${story._id}/views`)
         .then(r => r.json())
@@ -68,8 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       fetch(`/api/story/${story._id}/chapters/published`)
         .then(r => r.json())
         .then(d => col.querySelector(".story-chapters").textContent = d.total_chapters ?? 0);
-
     }
+
   } catch (err) {
     console.error("Lỗi khi tải thể loại:", err);
     resultsContainer.innerHTML = `<p class="text-danger text-center mt-4">

@@ -2,28 +2,33 @@
 let allChapters = [];
 let currentPage = 1;
 const itemsPerPage = 10;
+let continueChapterId = null;
+
+// ===================== LẤY STORY ID TỪ URL =====================
+function getStoryIdFromURL() {
+    const match = window.location.pathname.match(/\/story\/([^\/]+)/);
+    return match ? match[1] : null;
+}
 
 // ===================== DOMCONTENTLOADED =====================
 document.addEventListener("DOMContentLoaded", async function () {
-    const pathSegments = window.location.pathname.split("/");
-    const storyId = pathSegments[pathSegments.length - 1];
+    const storyId = getStoryIdFromURL();
     if (!storyId) return;
 
-    // --- Lấy dữ liệu truyện và danh sách chapter ---
-    await fetchStoryData(storyId);
+    // song song lấy cả story + tiến độ đọc
+    await Promise.all([
+        fetchStoryData(storyId),
+        fetchContinueChapter(storyId)
+    ]);
 
-    // --- Kiểm tra trạng thái theo dõi ---
-    await checkFollowStatus(storyId);
+    // cập nhật nút đọc sau khi cả hai API hoàn tất
+    updateReadButton(storyId);
 
-    // --- Xử lý nút theo dõi ---
     const followBtn = document.getElementById("followBtn");
-    if (followBtn) {
-        followBtn.addEventListener("click", () => toggleFollow(storyId));
-    }
+    if (followBtn) followBtn.addEventListener("click", () => toggleFollow(storyId));
 
     await fetchTotalFollow(storyId);
     await fetchRecommendStories(storyId);
-
 });
 
 // ===================== FETCH STORY DATA =====================
@@ -41,10 +46,13 @@ async function fetchStoryData(storyId) {
 }
 
 // ===================== FILL STORY DATA =====================
-async function fillStoryData(story, chapters) {
+function fillStoryData(story, chapters) {
     document.querySelector(".story-name").textContent = story.title;
+
+    const authorName = story.username || (story.userId && story.userId.username) || "Không rõ";
+    const authorId = story.userId?._id || "";
     document.querySelector(".story-infor ul").innerHTML = `
-        <li>Tác giả: ${story.username || (story.userId && story.userId.username) || "Không rõ"}</li>
+        <li>Tác giả: ${authorId ? `<a href="/account/${authorId}">${authorName}</a>` : authorName}</li>
         <li>Thể loại: ${story.category || "Chưa phân loại"}</li>
     `;
 
@@ -54,7 +62,6 @@ async function fillStoryData(story, chapters) {
     document.querySelector(".cover-photo img").src = thumbnail;
     document.querySelector(".story").style.backgroundImage = `url('${thumbnail}')`;
 
-    // Likes vẫn lấy từ story
     const votesEl = document.getElementById("votes");
     if (votesEl) votesEl.textContent = story.votes || 0;
 
@@ -66,18 +73,9 @@ async function fillStoryData(story, chapters) {
     renderChapters();
     renderPagination();
 
-    if (publishedChapters.length > 0) {
-        document.querySelector(".btn-read").href = `/story/${story._id}/chapter/${publishedChapters[0]._id}`;
-    } else {
-        const btnRead = document.querySelector(".btn-read");
-        btnRead.classList.add("disabled");
-        btnRead.textContent = "Chưa có chương nào";
-    }
-
-    // --- Lấy tổng view tất cả chapter từ API (update live) ---
-    await fetchTotalStoryViews(story._id);
-    await fetchTotalStoryVotes(story._id);
-
+    // --- Lấy tổng view + vote ---
+    fetchTotalStoryViews(story._id);
+    fetchTotalStoryVotes(story._id);
 }
 
 // ===================== RENDER CHAPTER LIST =====================
@@ -97,9 +95,15 @@ function renderChapters() {
         const a = document.createElement("a");
         a.href = `/story/${chap.storyId}/chapter/${chap._id}`;
         a.classList.add("list-group-item", "list-group-item-action", "episode");
+
+        const createdAt = new Date(chap.createdAt || chap.updatedAt);
+        const formattedDate = isNaN(createdAt) ? "Không rõ" :
+            `${createdAt.getDate()}/${createdAt.getMonth() + 1}/${createdAt.getFullYear()}`;
+
         a.innerHTML = `
             <span class="episode-item-num">${chap.chapter_number}</span>
             <span class="episode-item-title">${chap.title}</span>
+            <span class="episode-item-date text-muted small">(${formattedDate})</span>
         `;
         container.appendChild(a);
     });
@@ -183,7 +187,7 @@ async function toggleFollow(storyId) {
     }
 }
 
-// ===================== TOTAL STORY VIEWS =====================
+// ===================== TOTAL STORY VIEWS / VOTES =====================
 async function fetchTotalStoryViews(storyId) {
     try {
         const res = await fetch(`/api/story/${storyId}/views`);
@@ -212,44 +216,87 @@ async function fetchTotalStoryVotes(storyId) {
     }
 }
 
-// ===== LẤY TỔNG NGƯỜI FOLLOW =====
+// ===================== FOLLOW TOTAL =====================
 async function fetchTotalFollow(storyId) {
-  try {
-    const res = await fetch(`/api/story/${storyId}/followers`);
-    const data = await res.json();
-    document.getElementById("totalFollow").textContent = data.total_follow ?? 0;
-  } catch (err) {
-    console.error("Lỗi follow:", err);
-  }
+    try {
+        const res = await fetch(`/api/story/${storyId}/followers`);
+        const data = await res.json();
+        document.getElementById("totalFollow").textContent = data.total_follow ?? 0;
+    } catch (err) {
+        console.error("Lỗi follow:", err);
+    }
 }
 
-// ===== LẤY TRUYỆN GỢI Ý =====
+// ===================== RECOMMEND STORIES =====================
 async function fetchRecommendStories(storyId) {
-  try {
-    const res = await fetch(`/api/story/${storyId}/recommend`);
-    const stories = await res.json();
-    const container = document.getElementById("recommendContainer");
+    try {
+        const res = await fetch(`/api/story/${storyId}/recommend`);
+        const stories = await res.json();
+        const container = document.getElementById("recommendContainer");
 
-    container.innerHTML = stories.length
-      ? ""
-      : `<p class="text-muted">Không có truyện phù hợp</p>`;
+        container.innerHTML = stories.length
+            ? ""
+            : `<p class="text-muted">Không có truyện phù hợp</p>`;
 
-    stories.forEach(story => {
-      container.innerHTML += `
-      <div class="col-6 col-md-3 mb-3 storyBox">
-        <a href="/story/${story._id}" class="text-decoration-none text-dark">
-          <div class="card h-100 shadow-sm">
-            <img src="${story.thumbnail || "../images/default.jpg"}"
-                 class="card-img-top story-thumbnail">
-            <div class="card-body">
-              <h5 class="card-title text-truncate-2">${story.title}</h5>
-              <p class="card-text text-muted small">${story.category}</p>
-            </div>
-          </div>
-        </a>
-      </div>`;
-    });
-  } catch (err) {
-    console.error("Lỗi gợi ý:", err);
-  }
+        stories.forEach(story => {
+            container.innerHTML += `
+            <div class="col-6 col-md-3 mb-3 storyBox">
+              <a href="/story/${story._id}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm">
+                  <img src="${story.thumbnail || "../images/default.jpg"}"
+                       class="card-img-top story-thumbnail">
+                  <div class="card-body">
+                    <h5 class="card-title text-truncate-2">${story.title}</h5>
+                    <p class="card-text text-muted small">${story.category}</p>
+                  </div>
+                </div>
+              </a>
+            </div>`;
+        });
+    } catch (err) {
+        console.error("Lỗi gợi ý:", err);
+    }
+}
+
+// ===================== READING PROGRESS =====================
+async function fetchContinueChapter(storyId) {
+    try {
+        const res = await fetch(`/api/reading/${storyId}`, { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        continueChapterId = data.chapterId || null;
+    } catch (err) {
+        console.warn("Không thể lấy tiến độ đọc:", err);
+    }
+}
+
+async function saveReadingProgress(storyId, chapterId) {
+    try {
+        await fetch(`/api/reading/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ storyId, chapterId })
+        });
+    } catch (err) {
+        console.error("Không thể lưu tiến độ đọc:", err);
+    }
+}
+
+// ===================== UPDATE READ BUTTON =====================
+function updateReadButton(storyId) {
+    const btnRead = document.querySelector(".btn-read");
+    if (!btnRead) return;
+
+    if (continueChapterId) {
+        btnRead.textContent = "Đọc tiếp";
+        btnRead.href = `/story/${storyId}/chapter/${continueChapterId}`;
+    } else if (allChapters.length > 0) {
+        btnRead.textContent = "Đọc từ chương 1";
+        btnRead.href = `/story/${storyId}/chapter/${allChapters[0]._id}`;
+    } else {
+        btnRead.textContent = "Chưa có chương nào";
+        btnRead.classList.add("disabled");
+        btnRead.href = "#";
+    }
 }

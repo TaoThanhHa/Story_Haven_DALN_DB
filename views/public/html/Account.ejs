@@ -5,15 +5,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tài khoản - Wattpad</title>
-    <link rel="stylesheet" href="../css/Account.css">
-    <link rel="stylesheet" href="../css/header.css">
+    <title>Tài khoản</title>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/Account.css">
     <style>
         /* Thêm CSS đơn giản để hiển thị ảnh preview */
         .avatar-preview-container {
@@ -59,7 +59,9 @@
             <button class="tab tab--active" data-tab="gioithieu"><i class="fa fa-info-circle"></i> Giới thiệu</button>
             <button class="tab" data-tab="hoithoai"><i class="fa fa-comments"></i> Hội thoại</button>
             <!-- Ẩn tab cài đặt nếu đang xem profile của người khác -->
-            <button class="tab" data-tab="caidat" id="settingsTab"><i class="fas fa-cog"></i> Cài đặt</button>
+            <button class="tab" data-tab="caidat" id="settingsTab" style="display:none;">
+                <i class="fas fa-cog"></i> Cài đặt
+            </button>
         </nav>
 
         <main class="content">
@@ -95,7 +97,7 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h3>Truyện của <span id="storyName"></span> <i class="fas fa-cog float-end"></i></h3>
-                                    <p class="text-muted"><span id="publishedStories">0</span>  • <span id="draftStories">0</span> Truyện đã Đăng</p>
+                                    <p class="text-muted"><span id="publishedStories">0</span>  • <span id="draftStories">0</span> Truyện đã Đăng</p> <!--Phần này chỉ hiện khi người dùng vào hồ sơ cá nhân-->
                                 </div>
                                 <div class="work-list" id="workList">
                                     <!-- Story items will be dynamically added here -->

@@ -5,7 +5,18 @@ async function performSearch(query) {
   try {
     const response = await fetch(`/api/stories/search?title=${encodeURIComponent(query)}`);
     if (!response.ok) throw new Error("Không thể kết nối đến server");
-    const data = await response.json();
+    let data = await response.json();
+
+    // 🔹 Lọc chỉ lấy truyện control = 1
+    data = data.filter(story => story.control === 1);
+
+    // 🔹 Sắp xếp theo thời gian cập nhật mới nhất (latestChapter > updatedAt > createdAt)
+    data.sort((a, b) => {
+      const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
+      const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
+      return (dateB.getTime() || 0) - (dateA.getTime() || 0); // mới nhất trước
+    });
+
     await renderSearchResults(data); // await để đảm bảo view được load
   } catch (error) {
     console.error("Search error:", error);
@@ -68,7 +79,6 @@ async function renderSearchResults(stories) {
     fetch(`/api/story/${story._id}/chapters/published`)
       .then(r => r.json())
       .then(d => col.querySelector(".story-chapters").textContent = d.total_chapters ?? 0);
-
   }
 
   container.appendChild(row);
@@ -98,11 +108,5 @@ window.addEventListener("DOMContentLoaded", () => {
 // 🧱 Hàm escape HTML (ngăn XSS)
 function escapeHtml(s) {
   if (!s) return "";
-  return s.replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  }[c]));
+  return s.replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }

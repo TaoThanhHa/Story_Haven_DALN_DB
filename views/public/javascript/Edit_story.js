@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".story").style.display = "block";
   document.querySelector(".chap").style.display = "none";
 });
-
 // 🟣 Chuyển tab giữa Tác phẩm / Chapter
 function changeContent(element, tab) {
   const storyElement = document.querySelector(".story");
@@ -59,6 +58,39 @@ function fillStoryData(story) {
 
   currentControl = story.control ? parseInt(story.control) : 0;
   updateControlButton();
+  updateChapterPermission(story.status);
+
+  function updateChapterPermission(status) {
+    const addBtn = document.querySelector(".button-chap a");
+    const table = document.getElementById("chapter-list");
+
+    if (!addBtn || !table) return;
+
+    if (status === "completed") {
+      addBtn.style.pointerEvents = "none";
+      addBtn.style.opacity = "0.4";
+      addBtn.textContent = "Truyện đã hoàn";
+
+      // Khóa các nút sửa / xóa trong bảng
+      table.querySelectorAll("button, a.btn-warning, button.btn-danger").forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.4";
+        btn.style.pointerEvents = "none";
+      });
+
+    } else {
+      addBtn.style.pointerEvents = "auto";
+      addBtn.style.opacity = "1";
+      addBtn.textContent = "+ Chương mới";
+
+      // Mở các nút sửa/xóa
+      table.querySelectorAll("button, a.btn-warning, button.btn-danger").forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+      });
+    }
+  }
 
   // Checkbox thể loại
   if (story.category) {

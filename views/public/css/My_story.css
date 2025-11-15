@@ -20,3 +20,61 @@
   border: 1px solid #00203fff;
   color: #adefd1ff;
 }
+
+.my-box {
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 50px;
+  width: 80%;
+}
+
+/* TAB (giống edit_story) */
+.words {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.word {
+  cursor: pointer;
+  margin-right: 20px;
+  padding-bottom: 8px;
+  font-size: 1.2rem;
+  transition: 0.3s;
+}
+
+.word.selected {
+  font-weight: bold;
+  border-bottom: 3px solid #adefd1ff;
+}
+
+/* STORY ITEM */
+.story-row {
+  border-bottom: 1px solid gainsboro;
+  padding: 15px 0;
+  display: flex;
+  gap: 15px;
+}
+
+.story-row img {
+  width: 140px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.story-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.story-meta {
+  margin: 5px 0;
+  color: gray;
+}
+
+.search-box {
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
