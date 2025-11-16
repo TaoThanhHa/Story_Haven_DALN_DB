@@ -97,9 +97,9 @@ router.post('/forgot-password', apiController.forgotPassword);
 router.post('/reset-password/:token', apiController.resetPassword);
 
 //FOLLOW USER
-
 router.get("/account/:userId", apiController.getUserProfile);
 router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); 
+router.get('/user/:userId/followers', apiController.getFollowersUsers);
 router.get('/user/:userId/following', apiController.getFollowingUsers); 
 
 
