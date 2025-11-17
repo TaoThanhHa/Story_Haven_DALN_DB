@@ -92,11 +92,15 @@ router.post('/login', apiController.login);
 router.get('/user/account-info', authMiddleware, apiController.getAccountInfo);
 router.get('/user/:userId/stories', apiController.getStoriesByUser);
 router.put('/user/update-profile', authMiddleware, uploadAvatar.single('avatarFile'), apiController.updateUserProfile);
+// ==================== AUTH / PASSWORD RESET ====================
+router.post('/forgot-password', apiController.forgotPassword);
+// Đây là route mà frontend sẽ gửi mật khẩu mới đến sau khi người dùng nhấp vào link trong email
+router.post('/reset-password/:token', apiController.resetPassword);
 
 //FOLLOW USER
-
 router.get("/account/:userId", apiController.getUserProfile);
 router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); 
+router.get('/user/:userId/followers', apiController.getFollowersUsers);
 router.get('/user/:userId/following', apiController.getFollowingUsers); 
 
 

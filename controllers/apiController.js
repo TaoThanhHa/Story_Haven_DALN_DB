@@ -4,8 +4,43 @@ const Chapter = require("../models/Chapter");
 const Follow = require("../models/Follow");
 const User = require("../models/User");
 const mongoose = require("mongoose");
+const nodemailer = require('nodemailer');
+const crypto = require('crypto'); 
+
+// Hàm này sẽ trả về dữ liệu user (đã populate) và các thông tin liên quan
+const _fetchUserProfileData = async (targetId, currentUserId) => {
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        return { success: false, message: "User ID không hợp lệ" };
+    }
+
+    const user = await User.findById(targetId)
+        .select("-password")
+        .populate("followers", "username avatar") // Populate để lấy thông tin chi tiết
+        .populate("following", "username avatar"); // Populate để lấy thông tin chi tiết
+
+    if (!user) {
+        return { success: false, message: "Không tìm thấy user" };
+    }
+
+    let isFollowing = false;
+    if (currentUserId && String(currentUserId) !== String(user._id)) {
+        const me = await User.findById(currentUserId);
+        if (me) { // Kiểm tra me có tồn tại không trước khi truy cập .following
+            isFollowing = me.following.includes(user._id);
+        }
+    }
+
+    return {
+        success: true,
+        user,
+        followersCount: user.followers.length,
+        followingCount: user.following.length,
+        isFollowing
+    };
+};
 
 const apiController = {
+  _fetchUserProfileData: _fetchUserProfileData,
 
   // ==================== STORY ====================
 getStories: async (req, res) => {
@@ -344,6 +379,89 @@ logout: (req, res) => {
   }
 },
 
+// ==================== USER AUTH / PASSWORD RESET ====================
+  forgotPassword: async (req, res) => { 
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Vui lòng nhập email.' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            // Tránh tiết lộ email có tồn tại hay không vì lý do bảo mật
+            return res.status(200).json({ message: 'Nếu email của bạn tồn tại, một liên kết đặt lại mật khẩu đã được gửi.' });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000*24; // Hạn trong 24h
+        await user.save();
+
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const resetURL = `http://${req.headers.host}/reset-password/${resetToken}`;
+
+        const mailOptions = {
+            to: user.email,
+            from: process.env.EMAIL_USER,
+            subject: 'Đặt lại mật khẩu StoryHaven của bạn',
+            html: `<p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản StoryHaven của mình.</p>
+                   <p>Vui lòng nhấp vào liên kết sau để đặt lại mật khẩu:</p>
+                   <a href="${resetURL}">${resetURL}</a>
+                   <p>Liên kết này sẽ hết hạn trong 1 giờ.</p>
+                   <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này và mật khẩu của bạn sẽ không thay đổi.</p>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ message: 'Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.' });
+
+    } catch (err) {
+        console.error('Lỗi trong forgotPassword:', err);
+        res.status(500).json({ error: 'Đã xảy ra lỗi hệ thống khi gửi email đặt lại mật khẩu.' });
+    }
+  }, 
+
+  resetPassword: async (req, res) => { 
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+        return res.status(400).json({ error: 'Vui lòng nhập mật khẩu mới.' });
+    }
+
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Mật khẩu của bạn đã được cập nhật thành công.' });
+
+    } catch (err) {
+        console.error('Lỗi trong resetPassword:', err);
+        res.status(500).json({ error: 'Đã xảy ra lỗi hệ thống khi đặt lại mật khẩu.' });
+    }
+  },
 
   // ✅ Lấy thông tin tài khoản
   getAccountInfo: async (req, res) => {
@@ -372,44 +490,32 @@ logout: (req, res) => {
   },
 
   // FOLLOW USER
-  // Lấy thông tin profile của một user bất kỳ (dùng khi xem profile người khác)
+  // Cập nhật getUserProfile để sử dụng hàm helper và gửi JSON
+  // Đây là endpoint API, nó sẽ gọi hàm helper và sau đó gửi JSON response
   getUserProfile: async (req, res) => {
     try {
       const { userId } = req.params;
-
-      // Nếu không có params userId -> lấy user đang login
       const targetId = userId || req.session.user?._id;
+      const currentUserId = req.session.user?._id;
 
       if (!targetId) {
         return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
       }
 
-      if (!mongoose.Types.ObjectId.isValid(targetId)) {
-        return res.status(400).json({ success: false, message: "User ID không hợp lệ" });
+      // Gọi hàm helper để lấy dữ liệu
+      const result = await _fetchUserProfileData(targetId, currentUserId);
+
+      if (!result.success) {
+          return res.status(result.message === "Không tìm thấy user" ? 404 : 400).json(result);
       }
 
-      const user = await User.findById(targetId)
-        .select("-password")
-        .populate("followers", "username avatar")
-        .populate("following", "username avatar");
-
-      if (!user) {
-        return res.status(404).json({ success: false, message: "Không tìm thấy user" });
-      }
-
-      let isFollowing = false;
-
-      if (req.session.user && req.session.user._id !== String(user._id)) {
-        const me = await User.findById(req.session.user._id);
-        isFollowing = me.following.includes(user._id);
-      }
-
+      // Gửi dữ liệu dưới dạng JSON
       res.json({
         success: true,
-        user,
-        followers: user.followers.length,
-        following: user.following.length,
-        isFollowing
+        user: result.user, // User đã populate
+        followersCount: result.followersCount,
+        followingCount: result.followingCount,
+        isFollowing: result.isFollowing
       });
 
     } catch (err) {
@@ -506,42 +612,88 @@ getStoriesByUser: async (req, res) => {
   //  Lấy danh sách những người mà user đang theo dõi
   getFollowingUsers: async (req, res) => {
     try {
-      const { userId } = req.params;
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
-      }
+        const { userId } = req.params; // ID của profile đang xem (ví dụ: oaiVL)
+        const loggedInUserId = req.session.user?._id; // ID của người dùng đang đăng nhập
 
-      const user = await User.findById(userId).populate('following', 'username avatar');
-      if (!user) {
-        return res.status(404).json({ error: "Không tìm thấy người dùng." });
-      }
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+        }
 
-      res.json({ success: true, following: user.following });
+        const user = await User.findById(userId)
+                               .populate('following', 'username avatar followers following') // THÊM populate followers/following để có thể check isFollowing
+                               .lean(); // QUAN TRỌNG: để có thể thêm thuộc tính isFollowing
+
+        if (!user) {
+            return res.status(404).json({ error: "Không tìm thấy người dùng." });
+        }
+
+        let followingList = user.following;
+
+        // Nếu có người dùng đăng nhập, tính toán trạng thái isFollowing cho mỗi người trong danh sách
+        if (loggedInUserId && followingList && followingList.length > 0) {
+            const loggedInUserObj = await User.findById(loggedInUserId).select("following").lean(); // Lấy danh sách following của người đang đăng nhập
+            if (loggedInUserObj) {
+                const loggedInUserFollowingIds = loggedInUserObj.following.map(f => f.toString());
+
+                followingList = followingList.map(followedUser => {
+                    const isFollowingThisUser = loggedInUserFollowingIds.includes(followedUser._id.toString());
+                    return {
+                        ...followedUser,
+                        isFollowing: isFollowingThisUser // Thêm thuộc tính isFollowing
+                    };
+                });
+            }
+        }
+
+        res.json({ success: true, following: followingList });
     } catch (err) {
-      console.error("getFollowingUsers error:", err);
-      res.status(500).json({ error: "Lỗi server khi lấy danh sách đang theo dõi." });
+        console.error("getFollowingUsers error:", err);
+        res.status(500).json({ error: "Lỗi server khi lấy danh sách đang theo dõi." });
     }
-  },
+},
 
-  // Lấy danh sách những người đang theo dõi user
-  getFollowersUsers: async (req, res) => {
+// Lấy danh sách những người đang theo dõi user
+getFollowersUsers: async (req, res) => {
     try {
-      const { userId } = req.params;
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: "ID người dùng không hợp lệ." });
-      }
+        const { userId } = req.params; // ID của profile đang xem (ví dụ: oaiVL)
+        const loggedInUserId = req.session.user?._id; // ID của người dùng đang đăng nhập
 
-      const user = await User.findById(userId).populate('followers', 'username avatar');
-      if (!user) {
-        return res.status(404).json({ error: "Không tìm thấy người dùng." });
-      }
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+        }
 
-      res.json({ success: true, followers: user.followers });
+        const user = await User.findById(userId)
+                               .populate('followers', 'username avatar followers following') // THÊM populate followers/following để có thể check isFollowing
+                               .lean(); // QUAN TRỌNG: để có thể thêm thuộc tính isFollowing
+
+        if (!user) {
+            return res.status(404).json({ error: "Không tìm thấy người dùng." });
+        }
+
+        let followersList = user.followers;
+
+        // Nếu có người dùng đăng nhập, tính toán trạng thái isFollowing cho mỗi người trong danh sách
+        if (loggedInUserId && followersList && followersList.length > 0) {
+            const loggedInUserObj = await User.findById(loggedInUserId).select("following").lean(); // Lấy danh sách following của người đang đăng nhập
+            if (loggedInUserObj) {
+                const loggedInUserFollowingIds = loggedInUserObj.following.map(f => f.toString());
+
+                followersList = followersList.map(followerUser => {
+                    const isFollowingThisUser = loggedInUserFollowingIds.includes(followerUser._id.toString());
+                    return {
+                        ...followerUser,
+                        isFollowing: isFollowingThisUser // Thêm thuộc tính isFollowing
+                    };
+                });
+            }
+        }
+
+        res.json({ success: true, followers: followersList });
     } catch (err) {
-      console.error("getFollowersUsers error:", err);
-      res.status(500).json({ error: "Lỗi server khi lấy danh sách người theo dõi." });
+        console.error("getFollowersUsers error:", err);
+        res.status(500).json({ error: "Lỗi server khi lấy danh sách người theo dõi." });
     }
-  },
+},
 
 
  // Update profile
