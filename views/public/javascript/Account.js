@@ -4,8 +4,38 @@ document.addEventListener("DOMContentLoaded", function () {
     const profileUsername = document.getElementById("profileUsername");
     const storyNameElement = document.getElementById("storyName");
     const storyCountElement = document.getElementById("storyCount");
-    const followersCountDisplay = document.getElementById("followersCountDisplay"); // Mới
-    const followingCountDisplay = document.getElementById("followingCountDisplay"); // Mới
+
+    // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY ===
+
+    // Các phần tử hiển thị số lượng theo dõi ở phần header profile (Đã có)
+    const followersCountDisplay = document.getElementById("followersCountDisplay");
+    const followingCountDisplay = document.getElementById("followingCountDisplay");
+
+    // THÊM: Các phần tử làm trigger click để chuyển hướng đến trang social (Cần thêm ID vào EJS)
+    // Giả định rằng bạn đã thêm id="followersCountClickable" và id="followingCountClickable"
+    // vào các thẻ span chứa số đếm trong phần profile__stats của Account.ejs
+    const followersCountClickable = document.getElementById("followersCountClickable");
+    const followingCountClickable = document.getElementById("followingCountClickable");
+
+    // THÊM: Các phần tử hiển thị số lượng theo dõi trong các card "Giới thiệu"
+    // Giả định bạn đã thêm id="followersCountInCard" và id="followingCountInCard"
+    // vào các thẻ span.badge trong card "Đang theo dõi" và "Người theo dõi" của Account.ejs
+    const followersCountInCard = document.getElementById("followersCountInCard");
+    const followingCountInCard = document.getElementById("followingCountInCard");
+
+    // Các phần tử để hiển thị danh sách người theo dõi/đang theo dõi (Đã có)
+    const followingUsersList = document.getElementById('followingUsersList');
+    const noFollowingMessage = document.getElementById('noFollowingMessage');
+    const followersUsersList = document.getElementById('followersUsersList');
+    const noFollowersMessage = document.getElementById('noFollowersMessage');
+
+    // THÊM: Các phần tử làm trigger click cho toàn bộ tiêu đề card
+    const cardFollowersHeaderClickable = document.getElementById("cardFollowersHeaderClickable");
+    const cardFollowingHeaderClickable = document.getElementById("cardFollowingHeaderClickable");
+
+    // === KẾT THÚC CÁC THAY ĐỔI ĐỊNH NGHĨA PHẦN TỬ ===
+
+
     const workList = document.getElementById("workList");
     const publishedStoriesElement = document.getElementById("publishedStories");
     const draftStoriesElement = document.getElementById("draftStories");
@@ -30,13 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Các phần tử mới cho tính năng follow
     const followButton = document.getElementById('followButton');
     const settingsTab = document.getElementById('settingsTab');
-    const followingListCard = document.getElementById('followingListCard');
-    const followingUsersList = document.getElementById('followingUsersList');
-    const noFollowingMessage = document.getElementById('noFollowingMessage');
-    const followersListCard = document.getElementById('followersListCard');
-    const followersUsersList = document.getElementById('followersUsersList');
-    const noFollowersMessage = document.getElementById('noFollowersMessage');
-
+    // followingListCard và followersListCard không cần khai báo ở đây nếu chỉ cập nhật nội dung bên trong
 
     let currentProfileUserId = null; // ID của người dùng mà chúng ta đang xem profile
     let loggedInUserId = LOGGED_IN_USER_ID;
@@ -68,6 +92,53 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         return null;
     };
+
+    // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY (Gắn Event Listeners) ===
+
+    /*
+    // Event listener để chuyển hướng khi click vào số lượng người theo dõi ở HEADER PROFILE
+    if (followersCountClickable) {
+        followersCountClickable.style.cursor = 'pointer'; // Thêm con trỏ để người dùng biết có thể click
+        followersCountClickable.addEventListener('click', () => {
+            if (currentProfileUserId) {
+                window.location.href = `/account/${currentProfileUserId}/social?tab=followers`;
+            }
+        });
+    }
+
+    // Event listener để chuyển hướng khi click vào số lượng người đang theo dõi ở HEADER PROFILE
+    if (followingCountClickable) {
+        followingCountClickable.style.cursor = 'pointer'; // Thêm con trỏ
+        followingCountClickable.addEventListener('click', () => {
+            if (currentProfileUserId) {
+                window.location.href = `/account/${currentProfileUserId}/social?tab=following`;
+            }
+        });
+    }
+        */
+
+    // Event listener để chuyển hướng khi click vào tiêu đề card "Người theo dõi"
+    if (cardFollowersHeaderClickable) {
+        cardFollowersHeaderClickable.style.cursor = 'pointer';
+        cardFollowersHeaderClickable.addEventListener('click', () => {
+            if (currentProfileUserId) {
+                window.location.href = `/account/${currentProfileUserId}/social?tab=followers`;
+            }
+        });
+    }
+
+    // Event listener để chuyển hướng khi click vào tiêu đề card "Đang theo dõi"
+    if (cardFollowingHeaderClickable) {
+        cardFollowingHeaderClickable.style.cursor = 'pointer';
+        cardFollowingHeaderClickable.addEventListener('click', () => {
+            if (currentProfileUserId) {
+                window.location.href = `/account/${currentProfileUserId}/social?tab=following`;
+            }
+        });
+    }
+
+    // === KẾT THÚC CÁC THAY ĐỔI GẮN EVENT LISTENERS ===
+
 
     // Hàm fetch stories (cần chỉnh sửa để lấy stories của userId cụ thể)
     const fetchStories = async (userId) => {
@@ -125,6 +196,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY (Uncomment và chỉnh sửa hàm fetch danh sách) ===
+
     // Hàm fetch và hiển thị danh sách người đang theo dõi
     const fetchFollowingUsers = async (userId) => {
         try {
@@ -140,7 +213,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         const userItem = document.createElement('a');
                         userItem.href = `/account/${user._id}`;
                         userItem.classList.add('following-item');
-                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}">`;
+                        // THÊM: hiển thị username cùng với avatar
+                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}"><span>${user.username}</span>`;
                         followingUsersList.appendChild(userItem);
                     });
                 }
@@ -167,7 +241,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         const userItem = document.createElement('a');
                         userItem.href = `/account/${user._id}`;
                         userItem.classList.add('following-item');
-                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}">`;
+                        // THÊM: hiển thị username cùng với avatar
+                        userItem.innerHTML = `<img src="${user.avatar || '/images/default-avatar.png'}" alt="Avatar ${user.username}"><span>${user.username}</span>`;
                         followersUsersList.appendChild(userItem);
                     });
                 }
@@ -178,6 +253,8 @@ document.addEventListener("DOMContentLoaded", function () {
             noFollowersMessage.textContent = 'Lỗi khi tải danh sách.';
         }
     };
+    // === KẾT THÚC CÁC THAY ĐỔI TRONG HÀM FETCH DANH SÁCH ===
+
 
     async function loadProfile() {
         try {
@@ -213,13 +290,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // ✅ Gán ID đang xem profile
             currentProfileUserId = user._id;
+            
 
-            // ==== GÁN DỮ LIỆU VÀO GIAO DIỆN ====
+            // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY (Cập nhật số đếm và gọi fetch list) ===
+
+            // KHÔNG GHI ĐÈ followingListCard.innerHTML VÀ followersListCard.innerHTML
+            // mà chỉ cập nhật textContent của các span chứa số đếm.
+
+            // Cập nhật số lượng người theo dõi ở HEADER PROFILE
+            if (followersCountDisplay) followersCountDisplay.textContent = data.followersCount || user.followers?.length || 0;
+            if (followingCountDisplay) followingCountDisplay.textContent = data.followingCount || user.following?.length || 0;
+
+            // Cập nhật số lượng người theo dõi trong các CARD "GIỚI THIỆU"
+            if (followersCountInCard) followersCountInCard.textContent = data.followersCount || user.followers?.length || 0;
+            if (followingCountInCard) followingCountInCard.textContent = data.followingCount || user.following?.length || 0;
+
+            // === KẾT THÚC CÁC THAY ĐỔI CẬP NHẬT SỐ ĐẾM ===
+
+
+            // ==== GÁN DỮ LIỆU VÀO GIAO DIỆN CƠ BẢN ====
             profileFullName.textContent = user.username || "Người dùng";
             profileUsername.textContent = user.username || "username";
             storyNameElement.textContent = user.username || "username";
-            followersCountDisplay.textContent = data.followersCount || user.followers?.length || 0;
-            followingCountDisplay.textContent = data.followingCount || user.following?.length || 0;
+            // followersCountDisplay và followingCountDisplay đã được cập nhật ở trên
             profileDescriptionContent.textContent = user.description || "Chưa có mô tả";
 
             // Avatar
@@ -239,9 +332,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 followButton.style.display = "none";
             }
 
-            // Load danh sách follow
+            // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY (Gọi fetch danh sách) ===
+            // Load danh sách follow/followers
             fetchFollowingUsers(user._id);
             fetchFollowersUsers(user._id);
+            // === KẾT THÚC CÁC THAY ĐỔI GỌI FETCH DANH SÁCH ===
+
 
             // Load truyện của user
             fetchStories(user._id);
@@ -281,16 +377,19 @@ document.addEventListener("DOMContentLoaded", function () {
             followButton.classList.toggle('btn-success', data.followed);
             followButton.classList.toggle('btn-primary', !data.followed);
 
-            // Cập nhật số followers NGAY LẬP TỨC (không cần loadProfile())
+            // === CÁC THAY ĐỔI BẮT ĐẦU TẠI ĐÂY (Cập nhật số đếm sau follow) ===
+            // Cập nhật số followers NGAY LẬP TỨC (trên cả header và card)
             let currentFollowers = parseInt(followersCountDisplay.textContent);
 
             if (data.followed) currentFollowers++;
             else currentFollowers--;
 
             followersCountDisplay.textContent = currentFollowers;
+            if (followersCountInCard) followersCountInCard.textContent = currentFollowers; // Cập nhật cả trong card
 
-            // Cập nhật lại danh sách followers
+            // Cập nhật lại danh sách followers trong card
             fetchFollowersUsers(currentProfileUserId);
+            // === KẾT THÚC CÁC THAY ĐỔI CẬP NHẬT SỐ ĐẾM SAU FOLLOW ===
 
         } catch (error) {
             console.error('Lỗi follow:', error);

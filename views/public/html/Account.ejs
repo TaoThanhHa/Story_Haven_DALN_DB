@@ -46,9 +46,10 @@
                 <p class="profile__username">@<span id="profileUsername"></span></p>
                 <div class="profile__stats">
                     <span><i class="fa fa-book"></i> <span id="storyCount">0</span> Tác phẩm</span>
-                    <!-- Cập nhật ID và giá trị mặc định cho Followers và Following -->
-                    <span><i class="fa fa-user-friends"></i> <span id="followersCountDisplay">0</span> Người theo dõi</span>
-                    <span><i class="fa fa-users"></i> <span id="followingCountDisplay">0</span> Đang theo dõi</span>
+                    <!-- Thay đổi tại đây: thêm ID cho span bao quanh hoặc toàn bộ khu vực -->
+                    <!-- Tốt nhất là thêm ID vào span cha của icon và số để dễ click -->
+                    <span id="followersClickableArea"><i class="fa fa-user-friends"></i> <span id="followersCountDisplay">0</span> Người theo dõi</span>
+                    <span id="followingClickableArea"><i class="fa fa-users"></i> <span id="followingCountDisplay">0</span> Đang theo dõi</span>
                 </div>
                 <!-- Nút Follow/Unfollow, chỉ hiện khi xem profile người khác -->
                 <button id="followButton" class="btn btn-primary mt-3" style="display:none;"></button>
@@ -77,7 +78,8 @@
 
                             <!-- Card Đang theo dõi (Hiển thị người mà user hiện tại đang theo dõi) -->
                             <div class="card mb-3" id="followingListCard">
-                                <h3><i class="fa fa-heart"></i> Đang theo dõi</h3>
+                                <!-- THÊM ID CHO THẺ H3 ĐỂ CÓ THỂ CLICK VÀO TOÀN BỘ DÒNG -->
+                                <h3 id="cardFollowingHeaderClickable"><i class="fa fa-heart"></i> Đang theo dõi <span class="badge bg-secondary" id="followingCountInCard">0</span></h3>
                                 <div class="following-list" id="followingUsersList">
                                     <!-- Danh sách người đang theo dõi sẽ được thêm vào đây bằng JavaScript -->
                                     <p id="noFollowingMessage" style="display: none;">Chưa theo dõi ai.</p>
@@ -86,7 +88,8 @@
 
                             <!-- Card Người theo dõi (Hiển thị người đang theo dõi user hiện tại) -->
                             <div class="card" id="followersListCard">
-                                <h3><i class="fa fa-user-friends"></i> Người theo dõi</h3>
+                                <!-- THÊM ID CHO THẺ H3 ĐỂ CÓ THỂ CLICK VÀO TOÀN BỘ DÒNG -->
+                                <h3 id="cardFollowersHeaderClickable"><i class="fa fa-user-friends"></i> Người theo dõi <span class="badge bg-secondary" id="followersCountInCard">0</span></h3>
                                 <div class="following-list" id="followersUsersList">
                                     <!-- Danh sách người theo dõi sẽ được thêm vào đây bằng JavaScript -->
                                     <p id="noFollowersMessage" style="display: none;">Chưa có người theo dõi.</p>

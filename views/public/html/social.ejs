@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <%- include('../../partials/header_meta') %> <% // Include các meta và CSS %>
+    <title>Social - <%= user.username %></title>
+    <%- include('../../partials/header_scripts') %> <% // Include các JS ở head %>
+    <% /* Các CSS/JS dành riêng cho trang social có thể đặt ở đây */ %>
+    <style>
+        /* CSS riêng cho trang social, ví dụ: */
+        body {
+            background-color: #f0f2f5;
+        }
+        .container-social-page {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .profile-summary {
+            flex: 1;
+            min-width: 250px;
+        }
+        .profile-card {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .profile-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+            margin-bottom: 10px;
+        }
+        .profile-card h3 {
+            margin: 5px 0;
+            color: #333;
+        }
+        .profile-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .suggestion-card {
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .suggestion-card h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .suggestion-item, .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .suggestion-item:last-child, .user-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item img, .user-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .suggestion-item span, .user-item span {
+            flex-grow: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        .social-content {
+            flex: 3;
+        }
+        .social-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .social-tab {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+            transition: all 0.2s ease-in-out;
+        }
+        .social-tab:hover {
+            color: #007bff;
+        }
+        .social-tab--active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+        .social-section {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .social-section--active {
+            display: block;
+        }
+        .social-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .social-section p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-decoration: none; /* remove underline for links */
+            color: inherit; /* inherit color from parent */
+        }
+        .user-item:hover {
+            background-color: #e9ecef;
+        }
+        .user-item button {
+            margin-left: auto; /* Push button to the right */
+        }
+    </style>
+</head>
+<body>
+    <%- include('header', { user: typeof user !== 'undefined' ? user : null }) %>
+
+    <div class="container-social-page"> <% // Đây là div bao bọc toàn bộ nội dung của trang social %>
+        <div class="profile-summary">
+            <div class="profile-card">
+                <img src="<%= user.avatar || '/images/default-avatar.png' %>" alt="Avatar">
+                <h3><%= user.username %></h3>
+                <p>@<%= user.username %></p>
+                <p>Some text here</p>
+            </div>
+            <div class="suggestion-card">
+                <h4>Gợi ý theo dõi</h4>
+                <div class="suggestion-list">
+                    <div class="suggestion-item">
+                        <img src="/images/avt1.jpg" alt="Avatar">
+                        <span>JaneSmith</span>
+                        <button class="btn btn-sm btn-primary">Theo dõi</button>
+                    </div>
+                    <div class="suggestion-item">
+                        <img src="/images/avt2.jpg" alt="Avatar">
+                        <span>JohnDoe</span>
+                        <button class="btn btn-sm btn-primary">Theo dõi</button>
+                    </div>
+                     <div class="suggestion-item">
+                        <img src="/images/avt3.jpg" alt="Avatar">
+                        <span>CharlieX</span>
+                        <button class="btn btn-sm btn-primary">Theo dõi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="social-content">
+            <div class="social-tabs">
+                <button class="social-tab social-tab--active" data-tab="followers"><i class="fa fa-user-friends"></i> Người theo dõi</button>
+                <button class="social-tab" data-tab="following"><i class="fa fa-heart"></i> Đang theo dõi</button>
+            </div>
+
+            <div id="followers" class="social-section social-section--active">
+                <h3>Người theo dõi của <%= user.username %></h3>
+                <p><span id="followersCountSocial">0</span> Followers</p>
+                <div class="user-list" id="socialFollowersList">
+                    <p class="text-center text-muted">Đang tải người theo dõi...</p>
+                </div>
+            </div>
+
+            <div id="following" class="social-section">
+                <h3><%= user.username %> đang theo dõi</h3>
+                <p><span id="followingCountSocial">0</span> Đang theo dõi</p>
+                <div class="user-list" id="socialFollowingList">
+                     <p class="text-center text-muted">Đang tải danh sách theo dõi...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.social-tab');
+            const sections = document.querySelectorAll('.social-section');
+            const socialFollowersList = document.getElementById('socialFollowersList');
+            const socialFollowingList = document.getElementById('socialFollowingList');
+            const followersCountSocial = document.getElementById('followersCountSocial');
+            const followingCountSocial = document.getElementById('followingCountSocial');
+
+            // Lấy ID của người dùng đang xem trang social (từ URL)
+            const pathParts = window.location.pathname.split('/');
+            const currentProfileUserId = pathParts[2]; // /account/:userId/social
+
+            // Lấy ID người dùng đã đăng nhập (từ biến toàn cục)
+            const loggedInUserId = '<%= typeof loggedInUser !== "undefined" ? loggedInUser._id : "" %>';
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('social-tab--active'));
+                    sections.forEach(s => s.classList.remove('social-section--active'));
+
+                    tab.classList.add('social-tab--active');
+                    const targetTab = tab.dataset.tab;
+                    document.getElementById(targetTab).classList.add('social-section--active');
+
+                    // Cập nhật URL với tab đã chọn để giữ trạng thái
+                    const urlParams = new URLSearchParams(window.location.search);
+                    urlParams.set('tab', targetTab);
+                    history.pushState(null, '', `?${urlParams.toString()}`);
+
+                    // Load dữ liệu khi tab được kích hoạt
+                    if (targetTab === 'followers') {
+                        fetchSocialUsers(currentProfileUserId, 'followers');
+                    } else {
+                        fetchSocialUsers(currentProfileUserId, 'following');
+                    }
+                });
+            });
+
+            const fetchSocialUsers = async (userId, type) => {
+                const listElement = type === 'followers' ? socialFollowersList : socialFollowingList;
+                listElement.innerHTML = '<p class="text-center text-muted">Đang tải...</p>';
+                try {
+                    const response = await fetch(`/api/user/${userId}/${type}`);
+                    const data = await response.json();
+
+                    if (data.success && data[type]) {
+                        listElement.innerHTML = '';
+                        if (data[type].length === 0) {
+                            listElement.innerHTML = `<p class="text-muted text-center">Chưa có ${type === 'followers' ? 'người theo dõi' : 'ai đang theo dõi'}.</p>`;
+                        } else {
+                            data[type].forEach(socialUser => {
+                                const userItem = document.createElement('a');
+                                userItem.href = `/account/${socialUser._id}`;
+                                userItem.classList.add('user-item');
+
+                                let followButtonHtml = '';
+                                // Chỉ hiển thị nút follow/unfollow nếu không phải là chính người dùng đang xem và đã đăng nhập
+                                if (loggedInUserId && loggedInUserId !== socialUser._id) {
+                                    const isFollowing = socialUser.isFollowing; // Cần trả về từ API
+                                    followButtonHtml = `<button class="btn btn-sm ${isFollowing ? 'btn-success' : 'btn-primary'}" data-user-id="${socialUser._id}">${isFollowing ? 'Đã theo dõi' : 'Theo dõi'}</button>`;
+                                }
+
+                                userItem.innerHTML = `
+                                    <img src="${socialUser.avatar || '/images/default-avatar.png'}" alt="Avatar ${socialUser.username}">
+                                    <span>${socialUser.username}</span>
+                                    ${followButtonHtml}
+                                `;
+                                listElement.appendChild(userItem);
+                            });
+                            // Thêm event listener cho các nút follow/unfollow động
+                            listElement.querySelectorAll('.user-item button').forEach(button => {
+                                button.addEventListener('click', handleFollowUnfollow);
+                            });
+                        }
+                    } else {
+                        listElement.innerHTML = `<p class="text-danger text-center">Lỗi khi tải danh sách ${type}.</p>`;
+                    }
+
+                    // Cập nhật số lượng
+                    if (type === 'followers') {
+                        followersCountSocial.textContent = data[type].length;
+                    } else {
+                        followingCountSocial.textContent = data[type].length;
+                    }
+
+                } catch (error) {
+                    console.error(`Error fetching ${type} users:`, error);
+                    listElement.innerHTML = `<p class="text-danger text-center">Lỗi mạng khi tải danh sách ${type}.</p>`;
+                }
+            };
+
+            const handleFollowUnfollow = async (event) => {
+                event.preventDefault();
+                event.stopPropagation(); // Ngăn chặn sự kiện click lan ra thẻ 'a'
+                const button = event.target;
+                const userIdToFollow = button.dataset.userId;
+
+                if (!loggedInUserId) {
+                    alert('Bạn cần đăng nhập để theo dõi người khác.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/user/${userIdToFollow}/follow`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Cập nhật nút
+                        button.textContent = data.followed ? "Đã theo dõi" : "Theo dõi";
+                        button.classList.toggle('btn-success', data.followed);
+                        button.classList.toggle('btn-primary', !data.followed);
+
+                        // Cập nhật số lượng trên tab hiện tại
+                        const currentTab = document.querySelector('.social-tab--active').dataset.tab;
+                        if (currentTab === 'followers') {
+                            // Nếu đang ở tab followers, ta cần refresh danh sách followers của currentProfileUserId
+                            // Hoặc chỉ cập nhật số lượng nếu API trả về số lượng mới
+                            fetchSocialUsers(currentProfileUserId, 'followers');
+                        } else if (currentTab === 'following') {
+                            // Nếu đang ở tab following, ta cần refresh danh sách following của currentProfileUserId
+                            fetchSocialUsers(currentProfileUserId, 'following');
+                        }
+                        // Cần cập nhật số lượng trên các tab khác và cả profile chính nếu đây là trang của mình
+                        // (đây là logic phức tạp hơn, tạm thời chỉ cập nhật tab hiện tại)
+
+                    } else {
+                        alert(data.error || 'Lỗi khi thực hiện thao tác theo dõi/bỏ theo dõi.');
+                    }
+                } catch (error) {
+                    console.error('Lỗi follow/unfollow:', error);
+                    alert('Có lỗi mạng khi thực hiện thao tác.');
+                }
+            };
+
+            // Kích hoạt tab dựa trên URL khi tải trang
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'followers'; // Mặc định là 'followers'
+            const initialTabElement = document.querySelector(`.social-tab[data-tab="${activeTab}"]`);
+            if (initialTabElement) {
+                initialTabElement.click(); // Giả lập click để kích hoạt tab và tải dữ liệu ban đầu
+            }
+        });
+    </script>
+</body>
+</html>
