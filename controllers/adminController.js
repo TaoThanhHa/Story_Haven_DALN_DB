@@ -187,91 +187,113 @@ const deleteUser = async (req, res) => {
 // ================= STORIES =================
 
 // Lấy danh sách truyện với pagination + filter + search
+// GET /admin/api/stories
+function escapeRegex(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const getStories = async (req, res) => {
   try {
-    let { page = 1, limit = 10, search = '', status = '', category = '' } = req.query;
+    let { page = 1, limit = 10, search = "", visibility = "", category = "" } = req.query;
     page = parseInt(page);
     limit = parseInt(limit);
 
-    const filter = {};
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-      // Nếu muốn tìm theo username của tác giả, cần join/populate
-      // filter.$or.push({ 'userId.username': { $regex: search, $options: 'i' } }); // Cần populate trước
+    const andClauses = [];
+
+    // filter visibility
+    if (visibility) {
+      andClauses.push({ visibility });
     }
-    if (status) filter.status = status;
-    if (category) filter.category = category; // Giả sử category là một string đơn hoặc là tìm trong mảng
 
-    const totalStories = await Story.countDocuments(filter);
-    const totalPages = Math.ceil(totalStories / limit);
+    // filter category
+    if (category) {
+      const cats = category.split(",").map(c => c.trim()).filter(Boolean);
 
-    const stories = await Story.find(filter)
-      .populate('userId', 'username') // Lấy username từ bảng User
+      if (cats.length) {
+        const catOr = cats.map(c => ({
+          category: {
+            $regex: new RegExp(`(^|,\\s*)${escapeRegex(c)}(,|$)`, "i")
+          }
+        }));
+        andClauses.push({ $or: catOr });
+      }
+    }
+
+    // search title hoặc author
+    if (search) {
+      const searchRegex = { $regex: search, $options: "i" };
+      const users = await User.find({ username: searchRegex }).select("_id");
+      const userIds = users.map(u => u._id);
+
+      const searchOr = [{ title: searchRegex }];
+      if (userIds.length) searchOr.push({ userId: { $in: userIds } });
+
+      andClauses.push({ $or: searchOr });
+    }
+
+    let query = {};
+    if (andClauses.length === 1) query = andClauses[0];
+    else if (andClauses.length > 1) query = { $and: andClauses };
+
+    const total = await Story.countDocuments(query);
+
+    const stories = await Story.find(query)
+      .populate("userId", "username email")
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 }) // Changed from created_at to createdAt
       .lean();
 
-    // Thêm totalChapters và định dạng lại dữ liệu cho frontend
-    const formattedStories = await Promise.all(stories.map(async story => {
-        const totalChapters = await Chapter.countDocuments({ storyId: story._id });
-        return {
-            ...story,
-            authorUsername: story.userId ? story.userId.username : 'N/A', // Đổi từ authorName sang authorUsername để rõ ràng hơn
-            category: Array.isArray(story.category) ? story.category.join(', ') : story.category,
-            totalChapters: totalChapters
-        };
+    const storiesWithCounts = await Promise.all(stories.map(async s => {
+      const chapterCount = await Chapter.countDocuments({ storyId: s._id });
+      return {
+        ...s,
+        authorUsername: s.userId ? s.userId.username : "N/A",
+        chapterCount
+      };
     }));
 
-    res.json({ stories: formattedStories, currentPage: page, totalPages, totalStories });
+    res.json({
+      stories: storiesWithCounts,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
-    console.error('Error getting stories:', err);
-    res.status(500).json({ error: 'Lỗi server khi lấy danh sách truyện.' });
+    console.error("getStories error:", err);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
-// Lấy truyện theo ID
+// ======================
+// Lấy chi tiết truyện theo ID (Admin)
+// ======================
 const getStoryById = async (req, res) => {
-  try {
-    const storyId = req.params.id; 
-    console.log('Fetching story with ID:', storyId);
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: "ID truyện không hợp lệ" });
 
-    if (!mongoose.Types.ObjectId.isValid(storyId)) {
-        return res.status(400).json({ error: 'ID truyện không hợp lệ.' });
+        const story = await Story.findById(id)
+            .populate("userId", "username email")
+            .lean();
+        if (!story) return res.status(404).json({ error: "Không tìm thấy truyện" });
+
+        const chapters = await Chapter.find({ storyId: story._id })
+            .select("chapterNumber title createdAt")
+            .sort({ chapterNumber: 1 })
+            .lean();
+
+        story.authorUsername = story.userId ? story.userId.username : "N/A";
+        story.authorEmail = story.userId ? story.userId.email : "N/A";
+        story.chapters = chapters;
+
+        res.json(story);
+    } catch (err) {
+        console.error("getStoryById error:", err);
+        res.status(500).json({ error: "Lỗi server khi lấy chi tiết truyện" });
     }
-
-    const story = await Story.findById(storyId)
-      .populate('userId', 'username email') // Lấy username và email từ bảng User
-      .lean();
-
-    if (!story) {
-        return res.status(404).json({ error: 'Không tìm thấy truyện.' });
-    }
-
-    // Lấy thêm danh sách chương
-    const chapters = await Chapter.find({ storyId: story._id })
-      .select('chapterNumber title createdAt') // Changed from created_at to createdAt
-      .sort({ chapterNumber: 1 })
-      .lean();
-
-    // Định dạng lại dữ liệu nếu cần
-    story.authorUsername = story.userId ? story.userId.username : 'N/A';
-    story.authorEmail = story.userId ? story.userId.email : 'N/A';
-    // story.category = Array.isArray(story.category) ? story.category.join(', ') : story.category;
-    story.chapters = chapters;
-
-    res.json(story);
-  } catch (err) {
-    console.error('Error getting story by ID:', err);
-    res.status(500).json({ error: 'Lỗi server khi lấy chi tiết truyện.' });
-  }
 };
 
-// Cập nhật trạng thái của truyện (ví dụ: complete/writing, hoặc khóa/mở khóa)
-// Hàm này có thể gộp vào updateStory tổng quát hơn
 const updateStoryStatus = async (req, res) => {
     try {
         const storyId = req.params.id;
@@ -298,97 +320,71 @@ const updateStoryStatus = async (req, res) => {
     }
 };
 
-// HÀM CẬP NHẬT TRUYỆN TỔNG QUÁT (bao gồm status, category, description)
+// ======================
+// Cập nhật visibility (Admin)
+// ======================
 const updateStory = async (req, res) => {
     try {
-        const storyId = req.params.id;
-        const { category, status, title, description, thumbnail } = req.body; // Thêm các trường bạn muốn admin sửa
+        const { id } = req.params;
+        const { visibility } = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(storyId)) {
-            return res.status(400).json({ error: 'ID truyện không hợp lệ.' });
+        if (!["public", "hidden"].includes(visibility)) {
+            return res.status(400).json({ success: false, message: "Visibility không hợp lệ" });
         }
 
-        const update = {};
-        const validStatuses = ['complete', 'writing', 'blocked', 'approved', 'pending'];
+        const story = await Story.findByIdAndUpdate(id, { visibility }, { new: true });
+        if (!story) return res.status(404).json({ success: false, message: "Không tìm thấy truyện" });
 
-        if (title !== undefined) update.title = title;
-        if (description !== undefined) update.description = description;
-        if (thumbnail !== undefined) update.thumbnail = thumbnail; // Cẩn thận với việc cập nhật thumbnail, có thể cần xử lý upload file riêng
-        if (category !== undefined) {
-            // Nếu category có thể là một mảng, frontend nên gửi dưới dạng mảng
-            update.category = category;
-        }
-        if (status !== undefined && validStatuses.includes(status)) {
-            update.status = status;
-        }
-
-        if (Object.keys(update).length === 0) {
-            return res.status(400).json({ error: 'Không có trường nào hợp lệ được cung cấp để cập nhật.' });
-        }
-
-        const story = await Story.findByIdAndUpdate(storyId, update, { new: true, runValidators: true });
-        if (!story) {
-            return res.status(404).json({ error: 'Không tìm thấy truyện.' });
-        }
-
-        res.json({ message: 'Cập nhật truyện thành công.', story });
+        res.json({ success: true, message: "Cập nhật visibility thành công", story });
     } catch (err) {
-        console.error('Error updating story:', err);
-        res.status(500).json({ error: 'Lỗi server khi cập nhật truyện.' });
+        console.error("updateStory error:", err);
+        res.status(500).json({ success: false, message: "Lỗi server khi cập nhật truyện" });
     }
 };
 
-
-// Xóa truyện (và các chương của nó, và các comments liên quan đến các chương đó)
+// ======================
+// Xóa truyện + chương + comment + báo cáo (Admin)
+// ======================
 const deleteStory = async (req, res) => {
   const storyId = req.params.id;
+  if (!mongoose.Types.ObjectId.isValid(storyId))
+    return res.status(400).json({ error: "ID truyện không hợp lệ" });
 
-  if (!mongoose.Types.ObjectId.isValid(storyId)) {
-      return res.status(400).json({ error: 'ID truyện không hợp lệ.' });
-  }
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const story = await Story.findById(storyId).session(session);
-    if (!story) {
-      await session.abortTransaction();
-      return res.status(404).json({ error: 'Không tìm thấy truyện.' });
-    }
+    const story = await Story.findByIdAndDelete(storyId);
+    if (!story) return res.status(404).json({ error: "Không tìm thấy truyện" });
 
-    // Xóa tất cả comments thuộc về các chương của truyện này
-    const chaptersInStory = await Chapter.find({ storyId: storyId }).session(session).select('_id');
-    const chapterIds = chaptersInStory.map(ch => ch._id);
-    await Comment.deleteMany({ chapterId: { $in: chapterIds } }).session(session);
-    // Xóa tất cả báo cáo bình luận liên quan đến các comments này
-    await ReportedComment.deleteMany({ 'commentId': { $in: chapterIds } }).session(session); // Giả định ReportedComment có commentId trỏ đến Comment
-    // Xóa tất cả chapters của truyện
-    await Chapter.deleteMany({ storyId: storyId }).session(session);
-    // Xóa truyện
-    await Story.deleteOne({ _id: storyId }).session(session);
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.json({ message: 'Truyện và tất cả các chương, bình luận liên quan đã được xóa thành công.' });
+    res.json({ message: "Story đã xóa thành công" });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error('Error deleting story and associated data:', err);
-    res.status(500).json({ error: 'Lỗi server khi xóa truyện và dữ liệu liên quan.' });
+    console.error("deleteStory error:", err);
+    res.status(500).json({ error: "Lỗi server khi xóa story" });
   }
 };
 
-// Lấy danh sách các thể loại độc đáo từ bảng stories (MongoDB Aggregate)
+// ======================
+// Lấy danh sách thể loại duy nhất
+// ======================
+// GET /admin/api/stories/categories
 const getUniqueStoryCategories = async (req, res) => {
     try {
-        const categories = await Story.distinct('category'); // Lấy tất cả các giá trị độc nhất của trường 'category'
-        // Nếu category là một mảng, distinct sẽ trả về các giá trị riêng lẻ trong mảng
-        // Nếu category là một string, nó sẽ trả về các giá trị string độc nhất
-        res.json(categories.filter(c => c !== null && c !== '').sort()); // Lọc null/rỗng và sắp xếp
+        // Lấy tất cả category khác rỗng từ database
+        let categories = await Story.distinct("category");
+        categories = categories.filter(c => c && c.trim() !== "").sort();
+
+        // Fallback: nếu database rỗng, dùng danh sách mặc định
+        const defaultCategories = [
+            "Bách hợp","Cổ đại","Cung đấu","Đam mỹ","Dị giới","Đô thị","Hài hước",
+            "Hệ thống","Hiện đại","Khoa học viễn tưởng","Kinh dị","Lịch sử","Linh dị",
+            "Mạt thế","Ngôn tình","Ngược luyến","Phiêu lưu","Quân sự","Sủng ngọt",
+            "Tâm lý","Tiên hiệp","Trinh thám","Trọng sinh","Xuyên không"
+        ];
+
+        if (categories.length === 0) categories = defaultCategories;
+
+        res.json(categories);
     } catch (err) {
-        console.error('Error getting unique story categories:', err);
-        res.status(500).json({ error: 'Lỗi server khi lấy các thể loại độc đáo.' });
+        console.error("getUniqueStoryCategories error:", err);
+        res.status(500).json({ error: "Lỗi server khi lấy thể loại" });
     }
 };
 

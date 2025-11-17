@@ -1,11 +1,12 @@
-// models/ReadingProgress.js
 const mongoose = require("mongoose");
 
-const ReadingProgressSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    storyId: { type: mongoose.Schema.Types.ObjectId, ref: "Story", required: true },
-    chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter", required: true },
-    updatedAt: { type: Date, default: Date.now }
-});
+const readingProgressSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  storyId: { type: mongoose.Schema.Types.ObjectId, ref: "Story", required: true },
+  chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter", required: true },
+  lastRead: { type: Date, default: Date.now },
+}, { timestamps: true });
 
-module.exports = mongoose.model("ReadingProgress", ReadingProgressSchema);
+readingProgressSchema.index({ userId: 1, storyId: 1 }, { unique: true });
+
+module.exports = mongoose.model("ReadingProgress", readingProgressSchema);

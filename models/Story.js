@@ -7,10 +7,11 @@ const storySchema = new mongoose.Schema({
   thumbnail: String,
   views: { type: Number, default: 0 },
   votes: { type: Number, default: 0 },
-  control: { type: Number, default: 0 }, // 0: draft, 1: published
+  control: { type: Number, default: 0 },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   username: { type: String, required: true }, 
-  status: { type: String, enum: ['writing', 'completed'], default: 'writing' }
+  status: { type: String, enum: ['writing', 'completed'], default: 'writing' },
+  visibility: { type: String, enum: ["public", "hidden"],default: "public" },
 }, { timestamps: true }); // timestamps sẽ tạo createdAt & updatedAt
 
 module.exports = mongoose.model("Story", storySchema);

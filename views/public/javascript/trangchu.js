@@ -68,7 +68,7 @@ async function fetchStories(page = 1) {
 
     if (response.ok && data.success) {
       // Chỉ lấy stories control = 1 (backend đã filter rồi, nhưng giữ an toàn)
-      const filteredStories = data.stories.filter(s => s.control === 1);
+      const filteredStories = data.stories.filter(s => s.visibility === "public");
 
       // Sort giống my_story: latestChapter > updatedAt > createdAt
       filteredStories.sort((a, b) => {

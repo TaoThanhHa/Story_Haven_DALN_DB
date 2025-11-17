@@ -14,7 +14,11 @@ getStories: async (req, res) => {
     const limit = 12;
 
     // 1️⃣ Lấy tất cả truyện control = true
-    let stories = await Story.find({ control: true })
+    let stories = await Story.find({ 
+      control: true,
+      visibility: "public"
+    })
+
       .populate("userId", "username email")
       .lean(); // lean() để trả về plain object
 
@@ -52,6 +56,12 @@ getStories: async (req, res) => {
       }
 
       const story = await Story.findById(storyId).populate("userId", "username email");
+      if (story.visibility === "hidden") {
+        if (!req.session.user || req.session.user._id.toString() !== story.userId.toString()) {
+          return res.status(403).json({ error: "Truyện này đang ẩn" });
+        }
+      }
+
       if (!story) {
         return res.status(404).json({ error: "Story not found" });
       }
@@ -76,7 +86,7 @@ getStories: async (req, res) => {
       if (!req.session.user)
         return res.status(401).json({ error: "Unauthorized" });
 
-      const { title, description, category, status, control } = req.body;
+      const { title, description, category, status, control, visibility } = req.body;
       const thumbnail = req.file ? `/images/${req.file.filename}` : null;
 
       const storyData = {
@@ -86,6 +96,7 @@ getStories: async (req, res) => {
         thumbnail,
         status: status || "writing",
         control: Number(control) || 0,
+        visibility: visibility || "public",
         userId: req.session.user._id,
         username: req.session.user.username,
       };
@@ -151,8 +162,12 @@ getStories: async (req, res) => {
     try {
       if (!req.session.user)
         return res.status(401).json({ error: "Unauthorized" });
-      const stories = await Story.find({ userId: req.session.user._id })
-        .populate("userId", "username email");
+
+      const stories = await Story.find({
+        userId: req.session.user._id,
+        visibility: "public"   // chỉ truyện công khai
+      }).populate("userId", "username email");
+
       res.status(200).json(stories);
     } catch (err) {
       console.error("getAllStoryByUserId:", err);
@@ -164,7 +179,11 @@ getStories: async (req, res) => {
     try {
       const { title } = req.query;
       if (!title) return res.status(400).json({ error: "Thiếu từ khóa" });
-      const stories = await Story.find({ title: { $regex: title, $options: "i" } });
+      const stories = await Story.find({
+        title: { $regex: title, $options: "i" },
+        control: 1,
+        visibility: "public"
+      });
       res.status(200).json(stories);
     } catch (err) {
       res.status(500).json({ error: "Database error" });
@@ -183,6 +202,7 @@ getStories: async (req, res) => {
       const stories = await Story.find({
         category: { $regex: category, $options: "i" },
         control: 1,
+        visibility: "public"
       })
         .populate("userId", "username email")
         .sort({ createdAt: -1 });
@@ -596,20 +616,30 @@ toggleFollow: async (req, res) => {
 
 getLibrary: async (req, res) => {
   try {
-    if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
+    if (!req.session.user) 
+      return res.status(401).json({ message: "Chưa đăng nhập" });
 
     const list = await Follow.find({ userId: req.session.user._id })
       .sort({ lastRead: -1 })
       .populate("storyId")
       .lean();
 
-    const result = list.map(item => ({
-      ...item.storyId,
-      lastRead: item.lastRead
-    }));
+    // Lọc truyện công khai & đã duyệt
+    const filtered = list
+      .filter(item => 
+        item.storyId &&
+        item.storyId.control === 1 &&
+        item.storyId.visibility === "public"
+      )
+      .map(item => ({
+        ...item.storyId,
+        lastRead: item.lastRead
+      }));
 
-    res.json(result);
+    res.json(filtered);
+
   } catch (err) {
+    console.error("getLibrary:", err);
     res.status(500).json({ error: "Lỗi server" });
   }
 },
@@ -625,21 +655,6 @@ checkFollowStatus: async (req, res) => {
     res.json({ followed: !!exists });
   } catch (err) {
     res.status(500).json({ error: "Lỗi server" });
-  }
-},
-
-updateLastRead: async (req, res) => {
-  try {
-    if (!req.session.user) return res.status(401).json({});
-
-    const { storyId } = req.body;
-    await Follow.updateOne(
-      { userId: req.session.user._id, storyId },
-      { lastRead: Date.now() }
-    );
-    res.json({ success: true });
-  } catch {
-    res.json({ success: false });
   }
 },
 
@@ -663,24 +678,28 @@ getRecommendedStories: async (req, res) => {
     if (!currentStory) return res.json([]);
 
     let categories = currentStory.category || "";
-    if (typeof categories === "string") categories = categories.split(",").map(c => c.trim());
+    if (typeof categories === "string")
+      categories = categories.split(",").map(c => c.trim());
 
-    const stories = await Story.find({ _id: { $ne: storyId } });
+    // Chỉ lấy truyện public + control = 1
+    const stories = await Story.find({
+      _id: { $ne: storyId },
+      visibility: "public",
+      control: 1
+    });
 
     const scored = stories.map(st => {
       let stCats = st.category || "";
-      if (typeof stCats === "string") stCats = stCats.split(",").map(c => c.trim());
+      if (typeof stCats === "string")
+        stCats = stCats.split(",").map(c => c.trim());
 
-      // Đếm số thể loại trùng
       const matchCount = stCats.filter(c => categories.includes(c)).length;
 
       return { story: st, matchs: matchCount };
     });
 
-    // Chỉ lấy truyện trùng >= 2 thể loại
     const filtered = scored.filter(s => s.matchs >= 2);
 
-    // Lấy 4 cái cao nhất
     const result = filtered
       .sort((a, b) => b.matchs - a.matchs)
       .slice(0, 4)
@@ -688,9 +707,11 @@ getRecommendedStories: async (req, res) => {
 
     res.json(result);
   } catch (err) {
+    console.error("getRecommendedStories:", err);
     res.status(500).json({ error: "Lỗi server" });
   }
 },
+
 
 };
 

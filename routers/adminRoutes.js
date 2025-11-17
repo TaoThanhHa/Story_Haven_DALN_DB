@@ -73,7 +73,7 @@ router.delete('/api/users/:id', adminController.deleteUser);
 router.get('/api/stories', adminController.getStories);
 router.get('/api/stories/:id', adminController.getStoryById);
 router.put('/api/stories/:id', adminController.updateStory);
-router.delete('/api/stories/:id', adminController.deleteStory);
+router.delete('/api/stories/:id', adminController.deleteStory); // xóa story
 router.get('/api/story-categories', adminController.getUniqueStoryCategories);
 
 //Dashboard

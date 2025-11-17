@@ -2,6 +2,7 @@ const Story = require("../models/Story");
 const Chapter = require("../models/Chapter");
 const ChapterView = require("../models/ChapterView");
 const ChapterVote = require("../models/ChapterVote");
+const ReadingProgress = require("../models/ReadingProgress");
 const mongoose = require("mongoose");
 
 const chapController = {
@@ -313,6 +314,48 @@ createChapter: async (req, res) => {
         res.status(500).json({ error: "Lỗi server" });
     }
     },
+
+  updateLastRead: async (req, res) => {
+    try {
+      if (!req.session.user)
+        return res.status(401).json({ success: false });
+
+      const { storyId, chapterId } = req.body;
+
+      await ReadingProgress.findOneAndUpdate(
+        { userId: req.session.user._id, storyId },
+        { chapterId, lastRead: Date.now() },
+        { upsert: true }
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("updateLastRead error:", err);
+      res.json({ success: false });
+    }
+  },
+
+  getContinueChapter: async (req, res) => {
+    try {
+      if (!req.session.user)
+        return res.status(200).json({ loggedIn: false, chapterId: null });
+
+      const { storyId } = req.params;
+
+      const progress = await ReadingProgress.findOne({
+        userId: req.session.user._id,
+        storyId
+      });
+
+      res.json({
+        loggedIn: true,
+        chapterId: progress ? progress.chapterId : null
+      });
+    } catch (err) {
+      console.error("getContinueChapter error:", err);
+      res.json({ loggedIn: true, chapterId: null });
+    }
+  },
 
 };
 

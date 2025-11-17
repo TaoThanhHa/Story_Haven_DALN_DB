@@ -17,3 +17,23 @@
     }
 }
 
+table th{
+    background-color: #adefd1ff;
+    color: #00203fff;
+}
+
+.btn-primary{
+    background-color: #adefd1ff;
+    color: #00203fff;
+}
+
+#storyModal .modal-dialog {
+    max-height: 90vh; /* không vượt quá 90% chiều cao màn hình */
+    display: flex;
+    flex-direction: column;
+}
+
+#storyModal .modal-content {
+    overflow-y: auto; /* cho phép scroll */
+}
+

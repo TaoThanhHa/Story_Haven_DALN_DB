@@ -52,3 +52,17 @@ a {
 
 .voted { background-color: #ff4d4f !important; color: white !important; }
 .followed { background-color: #007bff !important; color: white !important; }
+
+.btn{
+  background-color: #adefd1ff;
+  border-color: #adefd1ff;
+  color: #00203fff;
+  font-weight: bold;
+}
+
+.btn:hover{
+    background-color: #00203fff;
+  border-color: #00203fff;
+  color: #adefd1ff;
+  font-weight: bold;
+}

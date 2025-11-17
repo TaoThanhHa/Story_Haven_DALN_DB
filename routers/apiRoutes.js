@@ -56,6 +56,8 @@ router.put("/chapters/reorder", chapController.reorderChapters);
 router.put('/chapter/:id/control', authMiddleware, chapController.updateChapterControl);
 router.get("/story/:storyId/chapters/published", chapController.getPublishedChapterCount);
 router.get("/story/:storyId/chapters/count", chapController.getAllChapterCount);
+router.post("/reading/save", chapController.updateLastRead);
+router.get("/reading/:storyId", chapController.getContinueChapter);
 
 // ==================== VIEW ====================
 router.post("/chapter/view", chapController.addChapterView);
@@ -78,7 +80,6 @@ router.delete("/chapter/comment/reply/:replyId", commentController.deleteReply);
 router.post("/story/follow", authMiddleware, apiController.toggleFollow);
 router.get("/story/follow-status/:storyId", authMiddleware, apiController.checkFollowStatus);
 router.get("/library", authMiddleware, apiController.getLibrary);
-router.post("/story/update-read", authMiddleware, apiController.updateLastRead);
 router.get("/story/:storyId/followers", apiController.getStoryFollowers);
 // ==================== SEARCH ====================
 router.get('/stories/search', apiController.searchStories);

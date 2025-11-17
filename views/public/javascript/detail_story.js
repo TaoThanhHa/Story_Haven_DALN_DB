@@ -21,8 +21,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         fetchContinueChapter(storyId)
     ]);
 
-    // cập nhật nút đọc sau khi cả hai API hoàn tất
+    // cập nhật nút đọc
     updateReadButton(storyId);
+
+    // Kiểm tra trạng thái follow ngay khi load
+    await checkFollowStatus(storyId);
 
     const followBtn = document.getElementById("followBtn");
     if (followBtn) followBtn.addEventListener("click", () => toggleFollow(storyId));
@@ -30,7 +33,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     await fetchTotalFollow(storyId);
     await fetchRecommendStories(storyId);
 });
-
 // ===================== FETCH STORY DATA =====================
 async function fetchStoryData(storyId) {
     try {
