@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../css/header.css">
 </head>
 <body>
-    <%- include('header.ejs', { user: typeof user !== 'undefined' ? user : null }) %>
+<%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
 
 
   <!-- Kết quả tìm kiếm -->

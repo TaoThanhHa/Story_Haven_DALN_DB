@@ -60,28 +60,25 @@
               <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm truyện..." />
               <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i></button>
           </form>
-
-          <% if (user) { %>
-            <div class="nav-item dropdown ms-3">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                    <img src="<%= user.avatar || '/images/schwi.png' %>"
-                            alt="Avatar" class="rounded-circle" width="30" height="30" id="navbarAvatarImg">
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/account">Hồ sơ của tôi</a></li>
-                    <li>
-                        <a href="/api/logout" class="dropdown-item text-danger">Đăng xuất</a>
-                    </li>
-
-                </ul>
-            </div>
-          <% } else { %>
-            <div class="ms-3">
-                <a href="/login" class="text-decoration-none me-2">Đăng nhập</a> |
-                <a href="/register" class="text-decoration-none ms-2">Đăng ký</a>
-            </div>
-          <% } %>
-
+        <% if (loggedInUser) { %>
+        <div class="nav-item dropdown ms-3">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <img src="<%= loggedInUser.avatar || '/images/schwi.png' %>"
+                    alt="Avatar" class="rounded-circle" width="30" height="30" id="navbarAvatarImg">
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/account">Hồ sơ của tôi</a></li>
+                <li>
+                    <a href="/api/logout" class="dropdown-item text-danger">Đăng xuất</a>
+                </li>
+            </ul>
+        </div>
+        <% } else { %>
+        <div class="ms-3">
+            <a href="/login" class="text-decoration-none me-2">Đăng nhập</a> |
+            <a href="/register" class="text-decoration-none ms-2">Đăng ký</a>
+        </div>
+        <% } %>
       </div>
   </div>
 </nav>

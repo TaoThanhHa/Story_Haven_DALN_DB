@@ -51,7 +51,7 @@ async function fetchStoryData(storyId) {
 function fillStoryData(story, chapters) {
     document.querySelector(".story-name").textContent = story.title;
 
-    const authorName = story.username || (story.userId && story.userId.username) || "Không rõ";
+    const authorName = story.userId?.username || "Không rõ";
     const authorId = story.userId?._id || "";
     document.querySelector(".story-infor ul").innerHTML = `
         <li>Tác giả: ${authorId ? `<a href="/account/${authorId}">${authorName}</a>` : authorName}</li>

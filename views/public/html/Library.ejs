@@ -15,7 +15,7 @@
 </head>
 
 <body>
-    <%- include('header.ejs', { user: typeof user !== 'undefined' ? user : null }) %>
+<%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
 
     <div class="container related-stories">
         <h2 class="text-center">Thư viện</h2>

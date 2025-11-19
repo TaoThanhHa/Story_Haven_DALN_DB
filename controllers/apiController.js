@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const nodemailer = require('nodemailer');
 const crypto = require('crypto'); 
 
-// Hàm này sẽ trả về dữ liệu user (đã populate) và các thông tin liên quan
+
 const _fetchUserProfileData = async (targetId, currentUserId) => {
     if (!mongoose.Types.ObjectId.isValid(targetId)) {
         return { success: false, message: "User ID không hợp lệ" };
@@ -15,8 +15,8 @@ const _fetchUserProfileData = async (targetId, currentUserId) => {
 
     const user = await User.findById(targetId)
         .select("-password")
-        .populate("followers", "username avatar") // Populate để lấy thông tin chi tiết
-        .populate("following", "username avatar"); // Populate để lấy thông tin chi tiết
+        .populate("followers", "username avatar") 
+        .populate("following", "username avatar"); 
 
     if (!user) {
         return { success: false, message: "Không tìm thấy user" };
@@ -492,94 +492,92 @@ logout: (req, res) => {
   // FOLLOW USER
   // Cập nhật getUserProfile để sử dụng hàm helper và gửi JSON
   // Đây là endpoint API, nó sẽ gọi hàm helper và sau đó gửi JSON response
-  getUserProfile: async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const targetId = userId || req.session.user?._id;
-      const currentUserId = req.session.user?._id;
-
-      if (!targetId) {
-        return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
-      }
-
-      // Gọi hàm helper để lấy dữ liệu
-      const result = await _fetchUserProfileData(targetId, currentUserId);
-
-      if (!result.success) {
-          return res.status(result.message === "Không tìm thấy user" ? 404 : 400).json(result);
-      }
-
-      // Gửi dữ liệu dưới dạng JSON
-      res.json({
-        success: true,
-        user: result.user, // User đã populate
-        followersCount: result.followersCount,
-        followingCount: result.followingCount,
-        isFollowing: result.isFollowing
-      });
-
-    } catch (err) {
-      console.error("getUserProfile API error:", err);
-      res.status(500).json({ success: false, message: "Lỗi server" });
-    }
-  },
-
-  // ✅ Lấy truyện theo user (ưu tiên userId từ query)
-getStoriesByUser: async (req, res) => {
+getUserProfile: async (req, res) => {
   try {
-    // 1. Lấy User ID từ URL (Bắt buộc)
-    let targetUserId = req.params.userId;
+    const { userId } = req.params;
+    const targetId = userId || req.session.user?._id; // profile đang xem
+    const currentUserId = req.session.user?._id;      // người đăng nhập
 
-    // Debug: In ra để kiểm tra xem Server nhận được ID gì
-    console.log("=== DEBUG getStoriesByUser ===");
-    console.log("Request Params ID:", req.params.userId);
-
-    if (!targetUserId || targetUserId === 'undefined' || targetUserId === 'null') {
-        console.log("Lỗi: Không tìm thấy User ID hợp lệ trên URL");
-        return res.status(400).json({ error: "User ID invalid" });
+    if (!targetId) {
+      return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
     }
 
-    targetUserId = String(targetUserId);
-    const loggedInUserId = req.session.user ? String(req.session.user._id) : null;
+    // Lấy dữ liệu profile target
+    const result = await _fetchUserProfileData(targetId, currentUserId);
 
-    const filter = { 
-        $or: [
-            { userId: targetUserId }, 
-            { author: targetUserId }
-        ] 
-    };
-
-    // Nếu người xem KHÁC tác giả -> Chỉ hiện truyện Đã xuất bản (control = 1)
-    if (loggedInUserId !== targetUserId) {
-        filter.control = 1; 
+    if (!result.success) {
+      return res.status(result.message === "Không tìm thấy user" ? 404 : 400).json(result);
     }
 
-    console.log("Filter Query:", JSON.stringify(filter)); // Xem bộ lọc query trông như thế nào
-
-    const stories = await Story.find(filter).lean();
-    console.log("Số lượng truyện tìm thấy:", stories.length);
-
-    const storiesWithLatest = await Promise.all(stories.map(async story => {
-      const latestChapter = await Chapter.findOne({ storyId: story._id })
-                                         .sort({ updatedAt: -1 })
-                                         .lean();
-
-      const derivedStatus = (story.control === 1) ? 'published' : 'draft';
-
-      return { 
-          ...story, 
-          status: story.status || derivedStatus,
-          latestChapter: latestChapter || null 
-      };
-    }));
-
-    res.json(storiesWithLatest);
+    // Trả về cả profileUser và currentUser
+    res.json({
+      success: true,
+      profileUser: result.user,  // người đang xem
+      currentUser: req.session.user, // người đang đăng nhập, dùng cho navbar
+      followersCount: result.followersCount,
+      followingCount: result.followingCount,
+      isFollowing: result.isFollowing
+    });
 
   } catch (err) {
-    console.error("Lỗi getStoriesByUser:", err);
-    res.status(500).json({ error: "Lỗi server khi lấy truyện" });
+    console.error("getUserProfile API error:", err);
+    res.status(500).json({ success: false, message: "Lỗi server" });
   }
 },
+
+  // ✅ Lấy truyện theo user (ưu tiên userId từ query)
+  getStoriesByUser: async (req, res) => {
+    try {
+      let targetUserId = req.params.userId;
+
+      console.log("=== DEBUG getStoriesByUser ===");
+      console.log("Request Params ID:", req.params.userId);
+
+      if (!targetUserId || targetUserId === 'undefined' || targetUserId === 'null') {
+          console.log("Lỗi: Không tìm thấy User ID hợp lệ trên URL");
+          return res.status(400).json({ error: "User ID invalid" });
+      }
+
+      targetUserId = String(targetUserId);
+      const loggedInUserId = req.session.user ? String(req.session.user._id) : null;
+
+      const filter = { 
+          $or: [
+              { userId: targetUserId }, 
+              { author: targetUserId }
+          ] 
+      };
+
+      if (loggedInUserId !== targetUserId) {
+          filter.control = 1; 
+      }
+
+      console.log("Filter Query:", JSON.stringify(filter)); 
+
+      const stories = await Story.find(filter).lean();
+      console.log("Số lượng truyện tìm thấy:", stories.length);
+
+      const storiesWithLatest = await Promise.all(stories.map(async story => {
+        const latestChapter = await Chapter.findOne({ storyId: story._id })
+                                          .sort({ updatedAt: -1 })
+                                          .lean();
+
+        const derivedStatus = (story.control === 1) ? 'published' : 'draft';
+
+        return { 
+            ...story, 
+            status: story.status || derivedStatus,
+            latestChapter: latestChapter || null 
+        };
+      }));
+
+      res.json(storiesWithLatest);
+
+    } catch (err) {
+      console.error("Lỗi getStoriesByUser:", err);
+      res.status(500).json({ error: "Lỗi server khi lấy truyện" });
+    }
+  },
 
   // Theo dõi/Bỏ theo dõi một người dùng
   toggleUserFollow: async (req, res) => {
@@ -609,14 +607,12 @@ getStoriesByUser: async (req, res) => {
       const isAlreadyFollowing = currentUser.following.includes(userToFollow._id);
 
       if (isAlreadyFollowing) {
-        // Bỏ theo dõi
         currentUser.following.pull(userToFollow._id);
         userToFollow.followers.pull(currentUser._id);
         await currentUser.save();
         await userToFollow.save();
         return res.json({ success: true, followed: false, message: "Đã bỏ theo dõi." });
       } else {
-        // Theo dõi
         currentUser.following.push(userToFollow._id);
         userToFollow.followers.push(currentUser._id);
         await currentUser.save();
@@ -633,16 +629,16 @@ getStoriesByUser: async (req, res) => {
   //  Lấy danh sách những người mà user đang theo dõi
   getFollowingUsers: async (req, res) => {
     try {
-        const { userId } = req.params; // ID của profile đang xem (ví dụ: oaiVL)
-        const loggedInUserId = req.session.user?._id; // ID của người dùng đang đăng nhập
+        const { userId } = req.params; 
+        const loggedInUserId = req.session.user?._id; 
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: "ID người dùng không hợp lệ." });
         }
 
         const user = await User.findById(userId)
-                               .populate('following', 'username avatar followers following') // THÊM populate followers/following để có thể check isFollowing
-                               .lean(); // QUAN TRỌNG: để có thể thêm thuộc tính isFollowing
+                               .populate('following', 'username avatar followers following') 
+                               .lean(); 
 
         if (!user) {
             return res.status(404).json({ error: "Không tìm thấy người dùng." });
@@ -650,9 +646,8 @@ getStoriesByUser: async (req, res) => {
 
         let followingList = user.following;
 
-        // Nếu có người dùng đăng nhập, tính toán trạng thái isFollowing cho mỗi người trong danh sách
         if (loggedInUserId && followingList && followingList.length > 0) {
-            const loggedInUserObj = await User.findById(loggedInUserId).select("following").lean(); // Lấy danh sách following của người đang đăng nhập
+            const loggedInUserObj = await User.findById(loggedInUserId).select("following").lean(); 
             if (loggedInUserObj) {
                 const loggedInUserFollowingIds = loggedInUserObj.following.map(f => f.toString());
 
@@ -660,7 +655,7 @@ getStoriesByUser: async (req, res) => {
                     const isFollowingThisUser = loggedInUserFollowingIds.includes(followedUser._id.toString());
                     return {
                         ...followedUser,
-                        isFollowing: isFollowingThisUser // Thêm thuộc tính isFollowing
+                        isFollowing: isFollowingThisUser
                     };
                 });
             }
@@ -718,53 +713,66 @@ getFollowersUsers: async (req, res) => {
 
 
  // Update profile
-  updateUserProfile: async (req, res) => {
-      try {
-          if (!req.session.user) {
-              return res.status(401).json({ error: "Chưa đăng nhập" });
-          }
+updateUserProfile: async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ error: "Chưa đăng nhập" });
+        }
 
-          const { username, email, phone, description } = req.body;
-          let avatarPath = req.body.avatar; // Giữ lại nếu người dùng không upload file mới mà chỉ muốn giữ avatar cũ (hoặc từ URL cũ nếu có)
+        const userId = req.session.user._id;
 
-          // Kiểm tra xem có file mới được upload không
-          if (req.file) {
-              // Đường dẫn lưu vào DB sẽ là /images/ten_file.ext
-              // Vì views/public là gốc, nên /images sẽ trỏ đến views/public/images
-              avatarPath = '/images/' + req.file.filename;
-          }
+        // Lấy dữ liệu user hiện tại trong DB
+        const currentUser = await User.findById(userId);
+        if (!currentUser) {
+            return res.status(404).json({ error: "Không tìm thấy user" });
+        }
 
-          const updated = await User.findByIdAndUpdate(
-              req.session.user._id,
-              {
-                  username,
-                  email,
-                  phonenumber: phone,
-                  avatar: avatarPath, // Cập nhật avatar
-                  description
-              },
-              { new: true, runValidators: true } // Thêm runValidators: true nếu bạn có validator trong schema
-          );
+        // Lấy dữ liệu gửi từ client (trùng với form frontend)
+        const { name, email, phone, description } = req.body;
 
-          if (!updated) {
-              return res.status(404).json({ error: "Không tìm thấy user" });
-          }
+        // Avatar cũ (giữ nguyên nếu không upload mới)
+        let avatarPath = currentUser.avatar;
 
-          req.session.user.username = updated.username;
-          // Cập nhật avatar trong session nếu bạn muốn sử dụng nó ở nơi khác ngay lập tức
-          req.session.user.avatar = updated.avatar;
+        // Nếu người dùng upload avatar mới → cập nhật
+        if (req.file) {
+            avatarPath = "/images/" + req.file.filename;
+        }
 
+        // Tạo object cập nhật, nếu input rỗng → giữ dữ liệu cũ
+        const updateData = {
+            username: name || currentUser.username,
+            email: email || currentUser.email,
+            phonenumber: phone || currentUser.phonenumber,
+            description: description || currentUser.description,
+            avatar: avatarPath
+        };
 
-          res.json({ success: true, message: "Cập nhật thành công!" });
+        // Tiến hành cập nhật
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        );
 
-      } catch (err) {
-          console.error("Error in updateUserProfile:", err); // Log lỗi chi tiết hơn
-          res.status(500).json({ error: "Lỗi server: " + err.message }); // Trả về lỗi cụ thể hơn
-      }
-  },
+        // Cập nhật session để header hiển thị ngay
+        req.session.user.username = updatedUser.username;
+        req.session.user.avatar = updatedUser.avatar;
+
+        res.json({
+            success: true,
+            message: "Cập nhật thành công!",
+            user: updatedUser
+        });
+
+    } catch (err) {
+        console.error("Error in updateUserProfile:", err);
+        res.status(500).json({
+            error: "Lỗi server: " + err.message
+        });
+    }
+},
 
  // ==================== FOLLOW ====================
-
 toggleFollow: async (req, res) => {
   try {
     if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
@@ -884,8 +892,6 @@ getRecommendedStories: async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 },
-
-
 };
 
 module.exports = apiController;

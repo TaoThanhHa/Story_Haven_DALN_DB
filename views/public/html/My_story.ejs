@@ -11,7 +11,7 @@
 </head>
 <body>
 
-  <%- include('header.ejs', { user }) %>
+<%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
 
   <div class="container my-box">
 

@@ -31,7 +31,7 @@
 </head>
 
 <body>
-    <%- include('header.ejs', { user: typeof user !== 'undefined' ? user : null }) %>
+<%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
 
     <div class="container1">
         <!-- Phần hiển thị thông báo -->
@@ -145,27 +145,26 @@
                         <div class="mb-3">
                             <label for="avatarFile" class="form-label">Cập nhật ảnh đại diện:</label>
                             <div class="avatar-preview-container">
-                                <!-- img này sẽ hiển thị ảnh hiện tại và ảnh preview mới -->
-                                <img id="avatarPreview" class="avatar-preview" src="/images/schwi.png" alt="Ảnh đại diện">
+                                <img id="avatarPreview" class="avatar-preview" src="<%= user ? user.avatar : '/images/schwi.png' %>" alt="Ảnh đại diện">
                             </div>
                             <input type="file" class="form-control" id="avatarFile" name="avatarFile" accept="image/*">
                             <small class="form-text text-muted">Chọn một file ảnh (JPG, PNG) để tải lên.</small>
                         </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Tên:</label>
-                            <input type="text" class="form-control" id="name" name="name" value="" required>
+                            <input type="text" class="form-control" id="name" name="name" value="<%= user ? user.name : '' %>" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="email" name="email" value="" required>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= user ? user.email : '' %>" required>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Điện thoại:</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="">
+                            <input type="text" class="form-control" id="phone" name="phone" value="<%= user && user.phone ? user.phone : '' %>">
                         </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Mô tả/Giới thiệu:</label>
-                            <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                            <textarea class="form-control" id="description" name="description" rows="5"><%= user && user.description ? user.description : '' %></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Lưu</button>
                     </form>

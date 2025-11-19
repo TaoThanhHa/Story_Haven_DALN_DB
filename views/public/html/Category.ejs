@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/Category.css">
 </head>
 <body>
-    <%- include('header.ejs', { user: typeof user !== 'undefined' ? user : null }) %>
+<%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
     <div class="container mt-4">
         <h3 class="mb-3 text-center" id="categoryTitle">Thể loại</h3>
         <div id="storyResults" class="row g-4"></div>
