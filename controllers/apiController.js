@@ -527,29 +527,50 @@ logout: (req, res) => {
   // ✅ Lấy truyện theo user (ưu tiên userId từ query)
 getStoriesByUser: async (req, res) => {
   try {
-    let userId = req.query.userId;
+    // 1. Lấy User ID từ URL (Bắt buộc)
+    let targetUserId = req.params.userId;
 
-    if (!userId) {
-      if (!req.session.user) return res.status(401).json({ error: "Chưa đăng nhập" });
-      userId = req.session.user._id;
+    // Debug: In ra để kiểm tra xem Server nhận được ID gì
+    console.log("=== DEBUG getStoriesByUser ===");
+    console.log("Request Params ID:", req.params.userId);
+
+    if (!targetUserId || targetUserId === 'undefined' || targetUserId === 'null') {
+        console.log("Lỗi: Không tìm thấy User ID hợp lệ trên URL");
+        return res.status(400).json({ error: "User ID invalid" });
     }
 
+    targetUserId = String(targetUserId);
     const loggedInUserId = req.session.user ? String(req.session.user._id) : null;
-    const targetUserId = String(userId);
 
-    const filter = { userId: targetUserId };
+    const filter = { 
+        $or: [
+            { userId: targetUserId }, 
+            { author: targetUserId }
+        ] 
+    };
 
-    // Nếu không phải chủ tài khoản → chỉ show published
-    if (loggedInUserId !== targetUserId) filter.control = 1;
+    // Nếu người xem KHÁC tác giả -> Chỉ hiện truyện Đã xuất bản (control = 1)
+    if (loggedInUserId !== targetUserId) {
+        filter.control = 1; 
+    }
+
+    console.log("Filter Query:", JSON.stringify(filter)); // Xem bộ lọc query trông như thế nào
 
     const stories = await Story.find(filter).lean();
+    console.log("Số lượng truyện tìm thấy:", stories.length);
 
-    // Thêm latestChapter
     const storiesWithLatest = await Promise.all(stories.map(async story => {
       const latestChapter = await Chapter.findOne({ storyId: story._id })
                                          .sort({ updatedAt: -1 })
                                          .lean();
-      return { ...story, latestChapter: latestChapter || null };
+
+      const derivedStatus = (story.control === 1) ? 'published' : 'draft';
+
+      return { 
+          ...story, 
+          status: story.status || derivedStatus,
+          latestChapter: latestChapter || null 
+      };
     }));
 
     res.json(storiesWithLatest);

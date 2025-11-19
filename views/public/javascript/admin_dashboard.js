@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const counts = [];
         const dataMap = new Map();
         storyData.forEach(item => {
-            dataMap.set(item.date.split('T')[0], item.count); // Format YYYY-MM-DD
+            dataMap.set(item._id.split('T')[0], item.count); // Format YYYY-MM-DD
         });
 
         for (let i = 6; i >= 0; i--) {

@@ -147,42 +147,44 @@ const deleteUser = async (req, res) => {
     return res.status(403).json({ error: 'Admin không thể tự xóa tài khoản của mình.' });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const user = await User.findById(userId).session(session);
+    // Kiểm tra user tồn tại
+    const user = await User.findById(userId);
     if (!user) {
-      await session.abortTransaction();
       return res.status(404).json({ error: 'Không tìm thấy người dùng.' });
     }
 
-    const storiesToDelete = await Story.find({ userId: userId }).session(session);
+    // Lấy tất cả truyện của user
+    const storiesToDelete = await Story.find({ userId: userId });
     const storyIds = storiesToDelete.map(s => s._id);
 
-    // Xóa tất cả chapters của các truyện của user
-    await Chapter.deleteMany({ storyId: { $in: storyIds } }).session(session);
-    // Xóa tất cả comments do user này viết
-    await Comment.deleteMany({ userId: userId }).session(session);
-    // Xóa tất cả reported comments liên quan đến user này (reporter hoặc author của comment)
-    await ReportedComment.deleteMany({
-        $or: [{ reporterUserId: userId }, { 'comment.userId': userId }] // Giả định schema ReportedComment có comment.userId
-    }).session(session);
-    // Xóa tất cả stories của user
-    await Story.deleteMany({ userId: userId }).session(session);
-    // Xóa user
-    await User.deleteOne({ _id: userId }).session(session);
+    // Xóa tất cả chapters của truyện
+    await Chapter.deleteMany({ storyId: { $in: storyIds } });
 
-    await session.commitTransaction();
-    session.endSession();
+    // Xóa tất cả comments do user viết
+    await Comment.deleteMany({ userId: userId });
+
+    // Xóa các reported comments liên quan user
+    await ReportedComment.deleteMany({
+        $or: [
+            { reporterUserId: userId },
+            { 'comment.userId': userId }
+        ]
+    });
+
+    // Xóa tất cả stories của user
+    await Story.deleteMany({ userId: userId });
+
+    // Cuối cùng, xóa user
+    await User.deleteOne({ _id: userId });
 
     res.json({ message: 'Người dùng và tất cả dữ liệu liên quan đã được xóa thành công.' });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
     console.error('Error deleting user and associated data:', err);
     res.status(500).json({ error: 'Lỗi server khi xóa người dùng và dữ liệu liên quan.' });
   }
 };
+
 
 // ================= STORIES =================
 
