@@ -771,68 +771,82 @@ const deleteReportedComment = async (req, res) => {
 
 const getDashboardStats = async (req, res) => {
     try {
-        // Tổng số người dùng
-        const totalUsers = await User.countDocuments();
-        // Tổng số truyện
-        const totalStories = await Story.countDocuments();
-        // Tổng số bình luận (từ model Comment)
-        const totalComments = await Comment.countDocuments();
-
-        // Số truyện đang chờ duyệt (giả sử có trường status = 'pending' trong Story model)
-        const pendingStories = await Story.countDocuments({ status: 'pending' });
-        // Số bình luận bị báo cáo đang chờ xử lý (từ model ReportedComment)
-        const pendingReports = await ReportedComment.countDocuments({ status: 'pending' }); // Giả sử status trong ReportedComment
-
-        // Truyện mới trong 7 ngày qua
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const newStoriesLast7Days = await Story.aggregate([
-            { $match: { createdAt: { $gte: sevenDaysAgo } } },
-            {
-                $group: {
-                    _id: {
-                        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
-                    },
-                    count: { $sum: 1 }
+
+        // Chạy song song tất cả các lệnh đếm để tiết kiệm thời gian
+        const [
+            totalUsers,
+            totalStories,
+            totalCommentsData,
+            pendingStories,
+            pendingReports,
+            newStoriesLast7Days,
+            storyCategories
+        ] = await Promise.all([
+            User.countDocuments(),      // 1. Tổng user
+            Story.countDocuments(),     // 2. Tổng truyện
+            Comment.aggregate([
+        {
+            $project: {
+                // Tính tổng = 1 (chính nó) + số lượng phần tử trong mảng replies
+                totalInThisDoc: { 
+                    $add: [ 1, { $size: { $ifNull: ["$replies", []] } } ] 
                 }
-            },
-            { $sort: { _id: 1 } }
-        ]);
-        // --- Bổ sung log để kiểm tra cấu trúc ---
-        console.log('Raw newStoriesLast7Days from aggregation:', newStoriesLast7Days);
-        console.log('Type of newStoriesLast7Days:', typeof newStoriesLast7Days);
-        if (Array.isArray(newStoriesLast7Days)) {
-            console.log('Is newStoriesLast7Days an array?', true);
-            newStoriesLast7Days.forEach((item, index) => {
-                console.log(`Item ${index}:`, item);
-            });
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                total: { $sum: "$totalInThisDoc" }
+            }
         }
+    ]),
+            Story.countDocuments({ status: 'pending' }), // 4. Truyện chờ duyệt
+            ReportedComment.countDocuments({ status: 'pending' }), // 5. Báo cáo chờ xử lý
+            
+            // 6. Biểu đồ truyện mới 7 ngày
+            Story.aggregate([
+                { $match: { createdAt: { $gte: sevenDaysAgo } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]),
 
-        // Thống kê thể loại truyện (Giả sử category có thể là một mảng hoặc một string)
-        const storyCategories = await Story.aggregate([
-            { $unwind: "$category" }, // Nếu 'category' là một mảng, unwind nó. Nếu không, bỏ qua dòng này.
-            { $match: { category: { $ne: null, $ne: '' } } }, // Lọc các category rỗng hoặc null
-            {
-                $group: {
-                    _id: "$category",
-                    count: { $sum: 1 }
-                }
-            },
-            { $project: { _id: 0, category: "$_id", count: 1 } },
-            { $sort: { count: -1 } },
-            { $limit: 10 } // Giới hạn top 10 thể loại
+            // 7. Biểu đồ thể loại
+            Story.aggregate([
+                { $unwind: "$category" },
+                { $match: { category: { $ne: null, $ne: '' } } },
+                {
+                    $group: {
+                        _id: "$category",
+                        count: { $sum: 1 }
+                    }
+                },
+                { $project: { _id: 0, category: "$_id", count: 1 } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ])
         ]);
 
+        const totalComments = totalCommentsData.length > 0 ? totalCommentsData[0].total : 0;
+        
+        // Trả về kết quả
         res.json({
             totalUsers,
             totalStories,
             totalComments,
             pendingStories,
             pendingReports,
-            newStoriesLast7Days,
+            newStoriesLast7Days, // Frontend sẽ dùng mảng này để vẽ biểu đồ
             storyCategories,
-            adminActivities: [] // Tạm thời rỗng 
+            adminActivities: [] 
         });
+
     } catch (err) {
         console.error('Lỗi khi lấy dữ liệu Dashboard:', err);
         res.status(500).json({ error: 'Lỗi server khi lấy dữ liệu Dashboard.' });
