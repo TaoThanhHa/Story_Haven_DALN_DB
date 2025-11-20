@@ -1,27 +1,21 @@
-/* Reset */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-
-/* Navbar */
 a {
   text-decoration: none;
   color: inherit;
 }
 
-/* Tiêu đề chương */
 .tieu-de {
   font-size: 1.3rem;
   font-weight: bold;
 }
 
-/* Nội dung chương */
 .noi-dung div {
   margin-bottom: 1rem;
 }
 
-/*Header edit*/
 .header .btn {
-  white-space: nowrap; /* Không cho xuống dòng */
+  white-space: nowrap; 
   font-size: 14px;
   padding: 6px 14px;
   border-radius: 8px;
@@ -29,7 +23,7 @@ a {
   align-items: center;
   justify-content: center;
   height: auto;
-  line-height: 1; /* Căn chữ đều chiều cao */
+  line-height: 1;
 }
 
 .header .btn-success,
@@ -112,14 +106,13 @@ a {
   color: #fff;
   font-weight: bold;
 }
-/* ===== Comment & Reply Container ===== */
+
 #commentsList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* ===== Comment Item ===== */
 .comment-item {
   padding: 10px 12px;
   border-radius: 8px;
@@ -130,7 +123,6 @@ a {
   background-color: #f1f1f1;
 }
 
-/* Comment header (avatar + username + time) */
 .comment-item .d-flex.align-items-start > img {
   flex-shrink: 0;
 }
@@ -145,30 +137,40 @@ a {
   font-size: 0.8rem;
 }
 
-/* Comment content */
 .comment-content {
   margin-top: 4px;
   font-size: 0.95rem;
   line-height: 1.4;
 }
 
-/* Comment buttons */
 .comment-item button {
   font-size: 0.75rem;
   padding: 0 4px;
   margin-right: 4px;
 }
 
-/* ===== Replies ===== */
+.btn-success, .btn-primary{
+  background-color: #adefd1ff;
+  border-color: #adefd1ff;
+  color: #00203fff;
+  font-weight: bold;
+}
+
+.btn-success:hover, .btn-primary:hover{
+  background-color: #00203fff;
+  border-color: #00203fff;
+  color: #adefd1ff;
+  font-weight: bold;
+}
+
 .replies {
   margin-top: 8px;
-  padding-left: 44px; /* offset avatar */
+  padding-left: 44px; 
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* Reply Item */
 .reply-item {
   padding: 6px 10px;
   border-radius: 6px;
@@ -178,25 +180,21 @@ a {
   background-color: #e8e8e8;
 }
 
-/* Reply avatar */
 .reply-item img {
   flex-shrink: 0;
 }
 
-/* Reply content */
 .reply-content {
   font-size: 0.9rem;
   line-height: 1.3;
 }
 
-/* Reply buttons */
 .reply-item button {
   font-size: 0.7rem;
   padding: 0 3px;
   margin-right: 3px;
 }
 
-/* ===== Reply Form ===== */
 .reply-form {
   gap: 4px;
 }
@@ -208,7 +206,6 @@ a {
   min-width: 60px;
 }
 
-/* ===== Inline avatar & spacing ===== */
 .box-cmt img {
   object-fit: cover;
 }

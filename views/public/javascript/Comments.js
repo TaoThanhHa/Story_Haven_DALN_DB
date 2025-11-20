@@ -145,7 +145,7 @@ if (e.target.classList.contains("reply-btn")) {
   const btn = document.createElement("button");
   btn.type = "submit";
   btn.className = "btn btn-primary";
-  btn.textContent = "Gửi";
+  btn.innerHTML = `<i class="fas fa-paper-plane"></i>`;
 
   form.appendChild(textarea);
   form.appendChild(btn);

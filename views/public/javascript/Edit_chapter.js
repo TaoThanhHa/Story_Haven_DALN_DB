@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const storyEditor = document.querySelector(".story-editor");
   const saveBtn = document.querySelector("button[onclick='saveChapter()']");
   
-  let CHAPTER_NUMBER = null;
   let lastTitle = "";
   let lastContent = "";
   let isSaving = false;
@@ -44,8 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       storyTitle.innerText = data.title || "Chưa có tiêu đề";
       storyEditor.innerText = data.content || "";
-      chapterLabel.textContent = `Chương ${data.chapter_number}`;
-      CHAPTER_NUMBER = data.chapter_number;
+
 
       lastTitle = storyTitle.innerText.trim();
       lastContent = storyEditor.innerText.trim();
@@ -86,7 +84,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({
           title,
           content,
-          chapter_number: CHAPTER_NUMBER,
           auto_save: isAuto,
         }),
       });
