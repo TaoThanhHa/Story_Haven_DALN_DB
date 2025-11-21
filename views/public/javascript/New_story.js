@@ -102,7 +102,5 @@ async function saveStory() {
   }
 }
 
-
-// Hiển thị khung nhập truyện (safe guard)
 const storyBlock = document.querySelector(".story");
 if (storyBlock) storyBlock.style.display = "block";

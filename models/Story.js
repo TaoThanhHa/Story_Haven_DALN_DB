@@ -12,6 +12,6 @@ const storySchema = new mongoose.Schema({
   username: { type: String, required: true }, 
   status: { type: String, enum: ['writing', 'completed'], default: 'writing' },
   visibility: { type: String, enum: ["public", "hidden"],default: "public" },
-}, { timestamps: true }); // timestamps sẽ tạo createdAt & updatedAt
+}, { timestamps: true });
 
 module.exports = mongoose.model("Story", storySchema);

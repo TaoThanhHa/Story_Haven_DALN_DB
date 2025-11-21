@@ -6,7 +6,6 @@ const ChapterVoteSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Ngăn trùng lặp vote 1 chương 1 lần
 ChapterVoteSchema.index({ chapterId: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model("ChapterVote", ChapterVoteSchema);

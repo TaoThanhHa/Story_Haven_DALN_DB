@@ -1,8 +1,7 @@
 const STORY_ID = new URLSearchParams(window.location.search).get("id");
 let selectedFile = null;
-let currentControl = 0; // 0 = bản nháp, 1 = đã đăng
+let currentControl = 0; 
 
-// Khi tải trang
 document.addEventListener("DOMContentLoaded", () => {
   if (STORY_ID) {
     fetchStoryData(STORY_ID);
@@ -11,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".story").style.display = "block";
   document.querySelector(".chap").style.display = "none";
 });
-// 🟣 Chuyển tab giữa Tác phẩm / Chapter
+// Chuyển tab giữa Tác phẩm / Chapter
 function changeContent(element, tab) {
   const storyElement = document.querySelector(".story");
   const chapElement = document.querySelector(".chap");
@@ -33,7 +32,7 @@ function changeContent(element, tab) {
   element.classList.add("selected");
 }
 
-// 🟢 Lấy dữ liệu truyện
+// Lấy dữ liệu truyện
 async function fetchStoryData(storyId) {
   try {
     const res = await fetch(`/api/story/${storyId}`);
@@ -50,7 +49,7 @@ async function fetchStoryData(storyId) {
   }
 }
 
-// 🟢 Điền dữ liệu vào form
+// Điền dữ liệu vào form
 function fillStoryData(story) {
   document.getElementById("story-title").value = story.title || "";
   document.getElementById("story-content").value = story.description || "";
@@ -71,7 +70,6 @@ function fillStoryData(story) {
       addBtn.style.opacity = "0.4";
       addBtn.textContent = "Truyện đã hoàn";
 
-      // Khóa các nút sửa / xóa trong bảng
       table.querySelectorAll("button, a.btn-warning, button.btn-danger").forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = "0.4";
@@ -83,7 +81,6 @@ function fillStoryData(story) {
       addBtn.style.opacity = "1";
       addBtn.textContent = "+ Chương mới";
 
-      // Mở các nút sửa/xóa
       table.querySelectorAll("button, a.btn-warning, button.btn-danger").forEach(btn => {
         btn.disabled = false;
         btn.style.opacity = "1";
@@ -92,7 +89,6 @@ function fillStoryData(story) {
     }
   }
 
-  // Checkbox thể loại
   if (story.category) {
     const categories = story.category.split(",").map(c => c.trim());
     document.querySelectorAll("#category-list input[type='checkbox']").forEach(cb => {
@@ -105,14 +101,14 @@ function fillStoryData(story) {
   }
 }
 
-// 🟡 Cập nhật nút đăng tải
+// Cập nhật nút đăng tải
 function updateControlButton() {
   const btn = document.getElementById("toggle-control-btn");
   if (!btn) return;
   btn.textContent = currentControl === 1 ? "Dừng đăng tải" : "Đăng tải";
 }
 
-// 🟢 Đổi trạng thái đăng tải
+// Đổi trạng thái đăng tải
 function togglePublish() {
   if (!STORY_ID) return alert("Không tìm thấy ID truyện!");
 
@@ -136,7 +132,7 @@ function togglePublish() {
     .catch(err => console.error("Lỗi khi đổi trạng thái:", err));
 }
 
-// 🟢 Lưu thông tin truyện
+// Lưu thông tin truyện
 function saveStory() {
   if (!STORY_ID) return alert("Không tìm thấy ID truyện!");
 
@@ -187,7 +183,7 @@ function saveStory() {
     .catch(err => console.error("Lỗi khi lưu:", err));
 }
 
-// 🟢 Load danh sách chương
+// Load danh sách chương
 async function loadChapterList(storyId) {
   try {
     const res = await fetch(`/api/story/${storyId}/chapters`);
@@ -204,7 +200,7 @@ async function loadChapterList(storyId) {
   }
 }
 
-// 🟢 Hiển thị danh sách chương
+// Hiển thị danh sách chương
 function fillChapterList(chapters) {
   const chapterListDiv = document.getElementById("chapter-list");
 
@@ -252,10 +248,10 @@ function fillChapterList(chapters) {
   html += `</tbody></table>`;
   chapterListDiv.innerHTML = html;
 
-  enableChapterDragDrop(); // ⚡ gọi sau khi render bảng
+  enableChapterDragDrop(); 
 }
 
-// 🟢 Kéo thả chương để thay đổi thứ tự
+// Kéo thả chương để thay đổi thứ tự
 function enableChapterDragDrop() {
   const tbody = document.getElementById("chapter-table-body");
   if (!tbody) return;
@@ -279,7 +275,6 @@ function enableChapterDragDrop() {
         const data = await res.json();
 
         if (data.success) {
-          // Hiệu ứng nhẹ khi reorder xong
           rows.forEach((row, i) => {
             const cell = row.querySelector("td:first-child");
             cell.textContent = i + 1;
@@ -307,7 +302,7 @@ async function toggleChapterControl(chapterId, currentControl) {
     });
     const data = await res.json();
     if (data.success) {
-      loadChapterList(STORY_ID); // reload danh sách
+      loadChapterList(STORY_ID); 
     } else {
       alert("Lỗi khi cập nhật trạng thái chương!");
     }
@@ -316,7 +311,7 @@ async function toggleChapterControl(chapterId, currentControl) {
   }
 }
 
-// 🟢 Thêm chương mới
+// Thêm chương mới
 function addChapter() {
   if (!STORY_ID) {
     alert("Vui lòng lưu truyện trước khi thêm chương!");
@@ -325,7 +320,7 @@ function addChapter() {
   window.location.href = `/create-chapter?storyId=${STORY_ID}`;
 }
 
-// 🟢 Xóa chương
+// Xóa chương
 function deleteChapter(chapterId) {
   if (!confirm("Bạn có chắc muốn xóa chương này?")) return;
 
@@ -334,7 +329,7 @@ function deleteChapter(chapterId) {
     .then(data => {
       if (data.success) {
         alert("Đã xóa chương!");
-        loadChapterList(STORY_ID); // ✅ Tải lại danh sách để cập nhật thứ tự mới
+        loadChapterList(STORY_ID); 
       } else {
         alert("Lỗi khi xóa chương!");
       }
@@ -342,7 +337,7 @@ function deleteChapter(chapterId) {
     .catch(err => console.error("Lỗi khi xóa:", err));
 }
 
-// 🟢 Upload ảnh bìa
+// Upload ảnh bìa
 document.getElementById("image-upload").addEventListener("change", e => {
   selectedFile = e.target.files[0];
   if (selectedFile) {

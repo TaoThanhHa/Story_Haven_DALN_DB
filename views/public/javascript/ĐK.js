@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordError = document.getElementById('password-error');
     const confirmPasswordError = document.getElementById('confirm-password-error');
 
-    // 🆕 Tạo thêm phần tử lỗi cho số điện thoại (nếu chưa có trong HTML)
     let phoneError = document.getElementById('phone-error');
     if (!phoneError) {
         phoneError = document.createElement('div');
@@ -29,8 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        // Ẩn lỗi cũ
         hideError(emailError);
         hideError(passwordError);
         hideError(confirmPasswordError);
@@ -43,30 +40,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
         let isValid = true;
-
-        // ✅ Validate email
         const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
         if (!emailRegex.test(email)) {
             showError(emailError, 'Email không hợp lệ. Vui lòng sử dụng email @gmail.com.');
             isValid = false;
         }
 
-        // ✅ Validate số điện thoại
-        // Cho phép dạng: 10 chữ số, bắt đầu bằng 0 (VD: 090xxxxxxx)
         const phoneRegex = /^(0[0-9]{9})$/;
         if (!phoneRegex.test(phone)) {
             showError(phoneError, 'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số, bắt đầu bằng số 0.');
             isValid = false;
         }
 
-        // ✅ Validate mật khẩu mạnh
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]).{8,}$/;
         if (!passwordRegex.test(password)) {
             showError(passwordError, 'Mật khẩu phải có ít nhất 8 ký tự, gồm 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt.');
             isValid = false;
         }
 
-        // ✅ Kiểm tra mật khẩu khớp
+        // Kiểm tra mật khẩu khớp
         if (password !== confirmPassword) {
             showError(confirmPasswordError, 'Mật khẩu và nhập lại mật khẩu không khớp!');
             isValid = false;
@@ -74,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!isValid) return;
 
-        // ✅ Gửi dữ liệu hợp lệ
+        // Gửi dữ liệu hợp lệ
         const data = { username: name, email, phone, password };
 
         try {

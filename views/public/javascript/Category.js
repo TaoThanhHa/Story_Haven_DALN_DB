@@ -1,4 +1,3 @@
-// 🧩 Render danh sách truyện theo category với tổng view live
 document.addEventListener("DOMContentLoaded", async () => {
   const resultsContainer = document.getElementById("storyResults");
   const titleElem = document.getElementById("categoryTitle");
@@ -21,14 +20,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) throw new Error("Lỗi kết nối API");
     let stories = await res.json();
 
-    // 🔹 Chỉ lấy truyện control = 1
     stories = stories.filter(s => s.control === 1);
 
-    // 🔹 Sắp xếp theo thời gian cập nhật mới nhất (latestChapter > updatedAt > createdAt)
     stories.sort((a, b) => {
       const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
       const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
-      return (dateB.getTime() || 0) - (dateA.getTime() || 0); // mới nhất trước
+      return (dateB.getTime() || 0) - (dateA.getTime() || 0); 
     });
 
     resultsContainer.innerHTML = "";
@@ -64,17 +61,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       resultsContainer.appendChild(col);
 
-      // ✅ VIEW
       fetch(`/api/story/${story._id}/views`)
         .then(r => r.json())
         .then(d => col.querySelector(".story-views").textContent = d.total_views ?? 0);
 
-      // ✅ VOTE
       fetch(`/api/story/${story._id}/votes`)
         .then(r => r.json())
         .then(d => col.querySelector(".story-votes").textContent = d.total_votes ?? 0);
 
-      // ✅ CHAPTER
       fetch(`/api/story/${story._id}/chapters/published`)
         .then(r => r.json())
         .then(d => col.querySelector(".story-chapters").textContent = d.total_chapters ?? 0);

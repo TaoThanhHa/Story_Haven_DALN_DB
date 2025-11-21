@@ -1,30 +1,26 @@
-// ===================== GLOBAL =====================
 let allChapters = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let continueChapterId = null;
 
-// ===================== LẤY STORY ID TỪ URL =====================
 function getStoryIdFromURL() {
     const match = window.location.pathname.match(/\/story\/([^\/]+)/);
     return match ? match[1] : null;
 }
 
-// ===================== DOMCONTENTLOADED =====================
+// DOMCONTENTLOADED
+
 document.addEventListener("DOMContentLoaded", async function () {
     const storyId = getStoryIdFromURL();
     if (!storyId) return;
 
-    // song song lấy cả story + tiến độ đọc
     await Promise.all([
         fetchStoryData(storyId),
         fetchContinueChapter(storyId)
     ]);
 
-    // cập nhật nút đọc
     updateReadButton(storyId);
 
-    // Kiểm tra trạng thái follow ngay khi load
     await checkFollowStatus(storyId);
 
     const followBtn = document.getElementById("followBtn");
@@ -67,7 +63,6 @@ function fillStoryData(story, chapters) {
     const votesEl = document.getElementById("votes");
     if (votesEl) votesEl.textContent = story.votes || 0;
 
-    // Chỉ lấy chapter đã đăng (control === 1)
     const publishedChapters = chapters.filter(ch => ch.control === 1);
     publishedChapters.sort((a, b) => a.chapter_number - b.chapter_number);
     allChapters = publishedChapters;
@@ -75,7 +70,6 @@ function fillStoryData(story, chapters) {
     renderChapters();
     renderPagination();
 
-    // --- Lấy tổng view + vote ---
     fetchTotalStoryViews(story._id);
     fetchTotalStoryVotes(story._id);
 }

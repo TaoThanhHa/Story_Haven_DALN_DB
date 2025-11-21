@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       storyTitle.innerText = data.title || "Chưa có tiêu đề";
       storyEditor.innerText = data.content || "";
 
-
       lastTitle = storyTitle.innerText.trim();
       lastContent = storyEditor.innerText.trim();
       console.log("✅ Dữ liệu chương đã tải:", data);
@@ -56,14 +55,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await fetchChapterData(CHAPTER_ID);
 
-  // 🧩 Kiểm tra xem nội dung có thay đổi không
+  // Kiểm tra xem nội dung có thay đổi không
   function hasChanges() {
     const currentTitle = storyTitle.innerText.trim();
     const currentContent = storyEditor.innerText.trim();
     return currentTitle !== lastTitle || currentContent !== lastContent;
   }
 
-  // 🧩 Hàm lưu chương
+  // Hàm lưu chương
   async function saveChapter(isAuto = false) {
     const title = storyTitle.innerText.trim();
     const content = storyEditor.innerText.trim();
@@ -115,10 +114,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // 🧩 Gán sự kiện click lưu
   if (saveBtn) saveBtn.addEventListener("click", () => saveChapter(false));
 
-  // 🧩 Tự động lưu mỗi 30 giây khi có thay đổi
+  //Tự động lưu mỗi 30 giây khi có thay đổi
   setInterval(() => {
     if (!isSaving && hasChanges()) {
       saveChapter(true);

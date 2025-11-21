@@ -25,7 +25,7 @@ const _fetchUserProfileData = async (targetId, currentUserId) => {
     let isFollowing = false;
     if (currentUserId && String(currentUserId) !== String(user._id)) {
         const me = await User.findById(currentUserId);
-        if (me) { // Kiểm tra me có tồn tại không trước khi truy cập .following
+        if (me) { 
             isFollowing = me.following.includes(user._id);
         }
     }
@@ -47,24 +47,20 @@ getStories: async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
-
-    // 1️⃣ Lấy tất cả truyện control = true
     let stories = await Story.find({ 
       control: true,
       visibility: "public"
     })
 
       .populate("userId", "username email")
-      .lean(); // lean() để trả về plain object
+      .lean(); 
 
-    // 2️⃣ Sort giống my_story
     stories.sort((a, b) => {
       const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
       const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
       return dateB - dateA;
     });
 
-    // 3️⃣ Phân trang
     const total = stories.length;
     const totalPages = Math.ceil(total / limit);
     const paginatedStories = stories.slice((page - 1) * limit, page * limit);
@@ -225,7 +221,7 @@ getStories: async (req, res) => {
     }
   },
 
-  // 📚 Lấy truyện theo thể loại
+  //Lấy truyện theo thể loại
   getStoriesByCategory: async (req, res) => {
     try {
       const { category } = req.query;
@@ -233,7 +229,6 @@ getStories: async (req, res) => {
         return res.status(400).json({ error: "Thiếu category" });
       }
 
-      // ✅ Tìm truyện có chứa thể loại đó trong chuỗi category
       const stories = await Story.find({
         category: { $regex: category, $options: "i" },
         control: 1,
@@ -255,7 +250,6 @@ getStories: async (req, res) => {
   },
 
   // ==================== USER ====================
-  // ✅ Đăng nhập
   register: async (req, res) => {
     try {
       const { username, email, password, phone } = req.body;
@@ -264,7 +258,6 @@ getStories: async (req, res) => {
         return res.status(400).json({ error: "Thiếu thông tin bắt buộc." });
       }
 
-      // Kiểm tra email đã tồn tại
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(409).json({ error: "Email đã được sử dụng." });
@@ -273,7 +266,7 @@ getStories: async (req, res) => {
       const newUser = new User({
         username,
         email,
-        password, // password sẽ được hash tự động bởi pre('save')
+        password,
         phonenumber: phone
       });
 
@@ -290,7 +283,6 @@ getStories: async (req, res) => {
     }
   },
 
-  // ===== LOGIN =====
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -308,16 +300,13 @@ getStories: async (req, res) => {
         return res.status(401).json({ error: "Email hoặc mật khẩu không chính xác." });
       }
 
-      // --- THÊM LOGIC KIỂM TRA TRẠNG THÁI TÀI KHOẢN VÀO ĐÂY ---
       if (user.status === 'banned' || user.status === 'blocked') { 
           return res.status(403).json({ error: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.' });
       }
       if (user.status === 'inactive') {
           return res.status(403).json({ error: 'Tài khoản của bạn chưa được kích hoạt hoặc đã bị vô hiệu hóa.' });
       }
-      // --- KẾT THÚC LOGIC KIỂM TRA TRẠNG THÁI ---
 
-      // ✅ Lưu session
       req.session.user = {
         _id: user._id,
         username: user.username,
@@ -325,14 +314,12 @@ getStories: async (req, res) => {
         avatar: user.avatar
       };
 
-      // ✅ BẮT BUỘC LƯU SESSION TRƯỚC KHI RESPONSE
       req.session.save(err => {
         if (err) {
           console.error("Lỗi lưu session:", err);
           return res.status(500).json({ error: "Không thể tạo session đăng nhập." });
         }
 
-        // Phân quyền redirect
         let redirectUrl = "/";
         if (user.role === "admin") redirectUrl = "/admin/dashboard";
 
@@ -350,34 +337,30 @@ getStories: async (req, res) => {
     }
   },
 
-logout: (req, res) => {
-  try {
-    const userRole = req.session?.user?.role || 'user';
+  logout: (req, res) => {
+    try {
+      const userRole = req.session?.user?.role || 'user';
 
-    req.session.destroy(err => {
-      if (err) {
-        console.error("❌ Lỗi khi đăng xuất:", err);
-        return res.status(500).send("Logout thất bại.");
-      }
+      req.session.destroy(err => {
+        if (err) {
+          console.error("❌ Lỗi khi đăng xuất:", err);
+          return res.status(500).send("Logout thất bại.");
+        }
 
-      // Xóa cookie session
-      res.clearCookie('storyhaven.sid', { path: '/' });
+        res.clearCookie('storyhaven.sid', { path: '/' });
 
-      // Redirect tùy vai trò
-      if (userRole === 'admin') {
-        // Admin → về login admin
-        return res.redirect('/login');
-      } else {
-        // User → về trang login user
-        return res.redirect('/');
-      }
-    });
-  } catch (error) {
-    console.error("❌ Lỗi ngoài ý muốn khi logout:", error);
-    // fallback redirect
-    res.redirect('/');
-  }
-},
+        if (userRole === 'admin') {
+          return res.redirect('/login');
+        } else {
+          return res.redirect('/');
+        }
+      });
+    } catch (error) {
+      console.error("❌ Lỗi ngoài ý muốn khi logout:", error);
+  
+      res.redirect('/');
+    }
+  },
 
 // ==================== USER AUTH / PASSWORD RESET ====================
   forgotPassword: async (req, res) => { 
@@ -391,7 +374,6 @@ logout: (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            // Tránh tiết lộ email có tồn tại hay không vì lý do bảo mật
             return res.status(200).json({ message: 'Nếu email của bạn tồn tại, một liên kết đặt lại mật khẩu đã được gửi.' });
         }
 
@@ -463,69 +445,61 @@ logout: (req, res) => {
     }
   },
 
-  // ✅ Lấy thông tin tài khoản
+  //Lấy thông tin tài khoản
   getAccountInfo: async (req, res) => {
     try {
       if (!req.session.user) {
         return res.status(401).json({ error: "Bạn chưa đăng nhập" });
       }
-      // Populate following và followers để có thể đếm số lượng
       const user = await User.findById(req.session.user._id)
                                .select("-password")
-                               .populate('following', 'username avatar') // Lấy username và avatar của người đang theo dõi
-                               .populate('followers', 'username avatar'); // Lấy username và avatar của người theo dõi mình
+                               .populate('following', 'username avatar') 
+                               .populate('followers', 'username avatar'); 
       if (!user) {
         return res.status(404).json({ error: "Không tìm thấy người dùng" });
       }
-      // Gửi cả số lượng following và followers
       res.json({
-        ...user.toObject(), // Chuyển sang object thường để thêm thuộc tính
+        ...user.toObject(),
         followingCount: user.following.length,
         followersCount: user.followers.length
       });
     } catch(err) {
-      console.error("getAccountInfo error:", err); // Thêm console.error để dễ debug
+      console.error("getAccountInfo error:", err); 
       res.status(500).json({ error: "Server error" });
     }
   },
 
-  // FOLLOW USER
-  // Cập nhật getUserProfile để sử dụng hàm helper và gửi JSON
-  // Đây là endpoint API, nó sẽ gọi hàm helper và sau đó gửi JSON response
-getUserProfile: async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const targetId = userId || req.session.user?._id; // profile đang xem
-    const currentUserId = req.session.user?._id;      // người đăng nhập
+  getUserProfile: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const targetId = userId || req.session.user?._id; 
+      const currentUserId = req.session.user?._id;     
 
-    if (!targetId) {
-      return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
+      if (!targetId) {
+        return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
+      }
+
+      const result = await _fetchUserProfileData(targetId, currentUserId);
+
+      if (!result.success) {
+        return res.status(result.message === "Không tìm thấy user" ? 404 : 400).json(result);
+      }
+
+      res.json({
+        success: true,
+        profileUser: result.user,  
+        currentUser: req.session.user, 
+        followersCount: result.followersCount,
+        followingCount: result.followingCount,
+        isFollowing: result.isFollowing
+      });
+
+    } catch (err) {
+      console.error("getUserProfile API error:", err);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     }
+  },
 
-    // Lấy dữ liệu profile target
-    const result = await _fetchUserProfileData(targetId, currentUserId);
-
-    if (!result.success) {
-      return res.status(result.message === "Không tìm thấy user" ? 404 : 400).json(result);
-    }
-
-    // Trả về cả profileUser và currentUser
-    res.json({
-      success: true,
-      profileUser: result.user,  // người đang xem
-      currentUser: req.session.user, // người đang đăng nhập, dùng cho navbar
-      followersCount: result.followersCount,
-      followingCount: result.followingCount,
-      isFollowing: result.isFollowing
-    });
-
-  } catch (err) {
-    console.error("getUserProfile API error:", err);
-    res.status(500).json({ success: false, message: "Lỗi server" });
-  }
-},
-
-  // ✅ Lấy truyện theo user (ưu tiên userId từ query)
   getStoriesByUser: async (req, res) => {
     try {
       let targetUserId = req.params.userId;
@@ -579,11 +553,10 @@ getUserProfile: async (req, res) => {
     }
   },
 
-  // Theo dõi/Bỏ theo dõi một người dùng
   toggleUserFollow: async (req, res) => {
     try {
-      const { userId } = req.params; // ID của người mà ta muốn theo dõi/bỏ theo dõi
-      const currentUserId = req.session.user?._id; // ID của người đang thực hiện hành động
+      const { userId } = req.params; 
+      const currentUserId = req.session.user?._id; 
 
       if (!currentUserId) {
         return res.status(401).json({ error: "Bạn cần đăng nhập để thực hiện hành động này." });
@@ -626,7 +599,6 @@ getUserProfile: async (req, res) => {
     }
   },
 
-  //  Lấy danh sách những người mà user đang theo dõi
   getFollowingUsers: async (req, res) => {
     try {
         const { userId } = req.params; 
@@ -666,232 +638,216 @@ getUserProfile: async (req, res) => {
         console.error("getFollowingUsers error:", err);
         res.status(500).json({ error: "Lỗi server khi lấy danh sách đang theo dõi." });
     }
-},
+  },
 
-// Lấy danh sách những người đang theo dõi user
-getFollowersUsers: async (req, res) => {
+  getFollowersUsers: async (req, res) => {
+      try {
+          const { userId } = req.params; 
+          const loggedInUserId = req.session.user?._id; 
+
+          if (!mongoose.Types.ObjectId.isValid(userId)) {
+              return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+          }
+
+          const user = await User.findById(userId)
+                                .populate('followers', 'username avatar followers following') 
+                                .lean();
+
+          if (!user) {
+              return res.status(404).json({ error: "Không tìm thấy người dùng." });
+          }
+
+          let followersList = user.followers;
+
+          if (loggedInUserId && followersList && followersList.length > 0) {
+              if (loggedInUserObj) {
+                  const loggedInUserFollowingIds = loggedInUserObj.following.map(f => f.toString());
+
+                  followersList = followersList.map(followerUser => {
+                      const isFollowingThisUser = loggedInUserFollowingIds.includes(followerUser._id.toString());
+                      return {
+                          ...followerUser,
+                          isFollowing: isFollowingThisUser 
+                      };
+                  });
+              }
+          }
+
+          res.json({ success: true, followers: followersList });
+      } catch (err) {
+          console.error("getFollowersUsers error:", err);
+          res.status(500).json({ error: "Lỗi server khi lấy danh sách người theo dõi." });
+      }
+  },
+
+  updateUserProfile: async (req, res) => {
+      try {
+          if (!req.session.user) {
+              return res.status(401).json({ error: "Chưa đăng nhập" });
+          }
+
+          const userId = req.session.user._id;
+
+          const currentUser = await User.findById(userId);
+          if (!currentUser) {
+              return res.status(404).json({ error: "Không tìm thấy user" });
+          }
+
+          const { name, email, phone, description } = req.body;
+
+          let avatarPath = currentUser.avatar;
+
+          if (req.file) {
+              avatarPath = "/images/" + req.file.filename;
+          }
+
+          const updateData = {
+              username: name || currentUser.username,
+              email: email || currentUser.email,
+              phonenumber: phone || currentUser.phonenumber,
+              description: description || currentUser.description,
+              avatar: avatarPath
+          };
+
+          const updatedUser = await User.findByIdAndUpdate(
+              userId,
+              updateData,
+              { new: true, runValidators: true }
+          );
+
+          req.session.user.username = updatedUser.username;
+          req.session.user.avatar = updatedUser.avatar;
+
+          res.json({
+              success: true,
+              message: "Cập nhật thành công!",
+              user: updatedUser
+          });
+
+      } catch (err) {
+          console.error("Error in updateUserProfile:", err);
+          res.status(500).json({
+              error: "Lỗi server: " + err.message
+          });
+      }
+  },
+
+  // ==================== FOLLOW ====================
+  toggleFollow: async (req, res) => {
     try {
-        const { userId } = req.params; // ID của profile đang xem (ví dụ: oaiVL)
-        const loggedInUserId = req.session.user?._id; // ID của người dùng đang đăng nhập
+      if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
 
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: "ID người dùng không hợp lệ." });
-        }
+      const { storyId } = req.body;
+      const userId = req.session.user._id;
 
-        const user = await User.findById(userId)
-                               .populate('followers', 'username avatar followers following') // THÊM populate followers/following để có thể check isFollowing
-                               .lean(); // QUAN TRỌNG: để có thể thêm thuộc tính isFollowing
+      const exists = await Follow.findOne({ userId, storyId });
 
-        if (!user) {
-            return res.status(404).json({ error: "Không tìm thấy người dùng." });
-        }
+      if (exists) {
+        await exists.deleteOne();
+        return res.json({ followed: false });
+      }
 
-        let followersList = user.followers;
-
-        // Nếu có người dùng đăng nhập, tính toán trạng thái isFollowing cho mỗi người trong danh sách
-        if (loggedInUserId && followersList && followersList.length > 0) {
-            const loggedInUserObj = await User.findById(loggedInUserId).select("following").lean(); // Lấy danh sách following của người đang đăng nhập
-            if (loggedInUserObj) {
-                const loggedInUserFollowingIds = loggedInUserObj.following.map(f => f.toString());
-
-                followersList = followersList.map(followerUser => {
-                    const isFollowingThisUser = loggedInUserFollowingIds.includes(followerUser._id.toString());
-                    return {
-                        ...followerUser,
-                        isFollowing: isFollowingThisUser // Thêm thuộc tính isFollowing
-                    };
-                });
-            }
-        }
-
-        res.json({ success: true, followers: followersList });
+      await Follow.create({ userId, storyId });
+      return res.json({ followed: true });
     } catch (err) {
-        console.error("getFollowersUsers error:", err);
-        res.status(500).json({ error: "Lỗi server khi lấy danh sách người theo dõi." });
+      console.error(err);
+      res.status(500).json({ error: "Lỗi server" });
     }
-},
+  },
 
-
- // Update profile
-updateUserProfile: async (req, res) => {
+  getLibrary: async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.status(401).json({ error: "Chưa đăng nhập" });
-        }
+      if (!req.session.user) 
+        return res.status(401).json({ message: "Chưa đăng nhập" });
 
-        const userId = req.session.user._id;
+      const list = await Follow.find({ userId: req.session.user._id })
+        .sort({ lastRead: -1 })
+        .populate("storyId")
+        .lean();
 
-        // Lấy dữ liệu user hiện tại trong DB
-        const currentUser = await User.findById(userId);
-        if (!currentUser) {
-            return res.status(404).json({ error: "Không tìm thấy user" });
-        }
+      const filtered = list
+        .filter(item => 
+          item.storyId &&
+          item.storyId.control === 1 &&
+          item.storyId.visibility === "public"
+        )
+        .map(item => ({
+          ...item.storyId,
+          lastRead: item.lastRead
+        }));
 
-        // Lấy dữ liệu gửi từ client (trùng với form frontend)
-        const { name, email, phone, description } = req.body;
-
-        // Avatar cũ (giữ nguyên nếu không upload mới)
-        let avatarPath = currentUser.avatar;
-
-        // Nếu người dùng upload avatar mới → cập nhật
-        if (req.file) {
-            avatarPath = "/images/" + req.file.filename;
-        }
-
-        // Tạo object cập nhật, nếu input rỗng → giữ dữ liệu cũ
-        const updateData = {
-            username: name || currentUser.username,
-            email: email || currentUser.email,
-            phonenumber: phone || currentUser.phonenumber,
-            description: description || currentUser.description,
-            avatar: avatarPath
-        };
-
-        // Tiến hành cập nhật
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            updateData,
-            { new: true, runValidators: true }
-        );
-
-        // Cập nhật session để header hiển thị ngay
-        req.session.user.username = updatedUser.username;
-        req.session.user.avatar = updatedUser.avatar;
-
-        res.json({
-            success: true,
-            message: "Cập nhật thành công!",
-            user: updatedUser
-        });
+      res.json(filtered);
 
     } catch (err) {
-        console.error("Error in updateUserProfile:", err);
-        res.status(500).json({
-            error: "Lỗi server: " + err.message
-        });
+      console.error("getLibrary:", err);
+      res.status(500).json({ error: "Lỗi server" });
     }
-},
+  },
 
- // ==================== FOLLOW ====================
-toggleFollow: async (req, res) => {
-  try {
-    if (!req.session.user) return res.status(401).json({ message: "Chưa đăng nhập" });
+  checkFollowStatus: async (req, res) => {
+    try {
+      if (!req.session.user) return res.json({ followed: false });
 
-    const { storyId } = req.body;
-    const userId = req.session.user._id;
+      const { storyId } = req.params;
+      const userId = req.session.user._id;
 
-    const exists = await Follow.findOne({ userId, storyId });
-
-    if (exists) {
-      await exists.deleteOne();
-      return res.json({ followed: false });
+      const exists = await Follow.findOne({ userId, storyId });
+      res.json({ followed: !!exists });
+    } catch (err) {
+      res.status(500).json({ error: "Lỗi server" });
     }
+  },
 
-    await Follow.create({ userId, storyId });
-    return res.json({ followed: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Lỗi server" });
-  }
-},
+  getStoryFollowers: async (req, res) => {
+    try {
+      const { storyId } = req.params;
+      const count = await Follow.countDocuments({ storyId });
+      res.json({ total_follow: count });
+    } catch (err) {
+      res.status(500).json({ error: "Lỗi server" });
+    }
+  },
 
-getLibrary: async (req, res) => {
-  try {
-    if (!req.session.user) 
-      return res.status(401).json({ message: "Chưa đăng nhập" });
+  getRecommendedStories: async (req, res) => {
+    try {
+      const { storyId } = req.params;
 
-    const list = await Follow.find({ userId: req.session.user._id })
-      .sort({ lastRead: -1 })
-      .populate("storyId")
-      .lean();
+      const currentStory = await Story.findById(storyId);
+      if (!currentStory) return res.json([]);
 
-    // Lọc truyện công khai & đã duyệt
-    const filtered = list
-      .filter(item => 
-        item.storyId &&
-        item.storyId.control === 1 &&
-        item.storyId.visibility === "public"
-      )
-      .map(item => ({
-        ...item.storyId,
-        lastRead: item.lastRead
-      }));
+      let categories = currentStory.category || "";
+      if (typeof categories === "string")
+        categories = categories.split(",").map(c => c.trim());
 
-    res.json(filtered);
+      const stories = await Story.find({
+        _id: { $ne: storyId },
+        visibility: "public",
+        control: 1
+      });
 
-  } catch (err) {
-    console.error("getLibrary:", err);
-    res.status(500).json({ error: "Lỗi server" });
-  }
-},
+      const scored = stories.map(st => {
+        let stCats = st.category || "";
+        if (typeof stCats === "string")
+          stCats = stCats.split(",").map(c => c.trim());
 
-checkFollowStatus: async (req, res) => {
-  try {
-    if (!req.session.user) return res.json({ followed: false });
+        const matchCount = stCats.filter(c => categories.includes(c)).length;
 
-    const { storyId } = req.params;
-    const userId = req.session.user._id;
+        return { story: st, matchs: matchCount };
+      });
 
-    const exists = await Follow.findOne({ userId, storyId });
-    res.json({ followed: !!exists });
-  } catch (err) {
-    res.status(500).json({ error: "Lỗi server" });
-  }
-},
+      const filtered = scored.filter(s => s.matchs >= 2);
 
-// ===== LẤY TỔNG NGƯỜI FOLLOW 1 TRUYỆN =====
-getStoryFollowers: async (req, res) => {
-  try {
-    const { storyId } = req.params;
-    const count = await Follow.countDocuments({ storyId });
-    res.json({ total_follow: count });
-  } catch (err) {
-    res.status(500).json({ error: "Lỗi server" });
-  }
-},
+      const result = filtered
+        .sort((a, b) => b.matchs - a.matchs)
+        .slice(0, 4)
+        .map(s => s.story);
 
-// ===== LẤY 4 TRUYỆN GỢI Ý TRÙNG ÍT NHẤT 2 THỂ LOẠI =====
-getRecommendedStories: async (req, res) => {
-  try {
-    const { storyId } = req.params;
-
-    const currentStory = await Story.findById(storyId);
-    if (!currentStory) return res.json([]);
-
-    let categories = currentStory.category || "";
-    if (typeof categories === "string")
-      categories = categories.split(",").map(c => c.trim());
-
-    // Chỉ lấy truyện public + control = 1
-    const stories = await Story.find({
-      _id: { $ne: storyId },
-      visibility: "public",
-      control: 1
-    });
-
-    const scored = stories.map(st => {
-      let stCats = st.category || "";
-      if (typeof stCats === "string")
-        stCats = stCats.split(",").map(c => c.trim());
-
-      const matchCount = stCats.filter(c => categories.includes(c)).length;
-
-      return { story: st, matchs: matchCount };
-    });
-
-    const filtered = scored.filter(s => s.matchs >= 2);
-
-    const result = filtered
-      .sort((a, b) => b.matchs - a.matchs)
-      .slice(0, 4)
-      .map(s => s.story);
-
-    res.json(result);
-  } catch (err) {
-    console.error("getRecommendedStories:", err);
-    res.status(500).json({ error: "Lỗi server" });
-  }
-},
+      res.json(result);
+    } catch (err) {
+      console.error("getRecommendedStories:", err);
+      res.status(500).json({ error: "Lỗi server" });
+    }
+  },
 };
 
 module.exports = apiController;

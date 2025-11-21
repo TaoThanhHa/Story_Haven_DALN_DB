@@ -3,9 +3,7 @@ let currentSearch = "";
 let currentVisibility = "";
 let currentCategories = [];
 
-// =====================
-// 1. Tải danh sách thể loại từ backend
-// =====================
+// Tải danh sách thể loại từ backend
 async function loadCategories() {
     const select = document.getElementById("story-category-filter");
     select.innerHTML = '<option value="">Tất cả thể loại</option>';
@@ -23,7 +21,6 @@ async function loadCategories() {
     } catch (err) {
         console.error("Không tải được danh sách thể loại", err);
 
-        // fallback cứng
         const fallback = [
             "Bách hợp","Cổ đại","Cung đấu","Đam mỹ","Dị giới","Đô thị","Hài hước",
             "Hệ thống","Hiện đại","Khoa học viễn tưởng","Kinh dị","Lịch sử","Linh dị",
@@ -39,9 +36,7 @@ async function loadCategories() {
     }
 }
 
-// =====================
-// 2. Lấy danh sách truyện theo tìm kiếm + lọc
-// =====================
+// Lấy danh sách truyện theo tìm kiếm + lọc
 async function fetchStories(page = 1, search = "", visibility = "", categories = []) {
     const tbody = document.getElementById("story-table-body");
     tbody.innerHTML = `<tr><td colspan="10">Đang tải...</td></tr>`;
@@ -87,9 +82,7 @@ async function fetchStories(page = 1, search = "", visibility = "", categories =
     }
 }
 
-// =====================
-// 3. Tìm kiếm + lọc nâng cao
-// =====================
+// Tìm kiếm + lọc nâng cao
 function searchAndFilterStories() {
     const keyword = document.getElementById("story-search-input").value;
     const visibility = document.getElementById("story-visibility-filter").value;
@@ -104,9 +97,7 @@ function searchAndFilterStories() {
     fetchStories(1, keyword, visibility, categories);
 }
 
-// =====================
-// 4. Init khi load trang
-// =====================
+// Init khi load trang
 document.addEventListener("DOMContentLoaded", () => {
     loadCategories();
     fetchStories();
@@ -119,10 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('story-category-filter').addEventListener('change', searchAndFilterStories);
 });
 
-
-// =====================
-// 3. Phân trang
-// =====================
+// Phân trang
 function renderPagination(totalPages, current) {
     const container = document.getElementById("story-pagination");
     container.innerHTML = "";
@@ -135,9 +123,7 @@ function renderPagination(totalPages, current) {
     }
 }
 
-// =====================
-// 5. Modal
-// =====================
+// Modal
 async function openStoryModal(id){
     resetModal();
     showModal("storyModal");
@@ -174,9 +160,7 @@ async function openStoryModal(id){
     }
 }
 
-// =====================
-// 6. Lưu visibility
-// =====================
+// Lưu visibility
 async function saveStoryChanges(){
     const id = document.getElementById('modalStoryId').value;
     const visibility = document.getElementById('modalVisibility').value;
@@ -195,16 +179,13 @@ async function saveStoryChanges(){
     }
 }
 
-// =====================
-// 7. Xóa truyện
-// =====================
+// Xóa truyện
 async function deleteStory() {
   const storyId = document.getElementById('modalStoryId').value;
   if (!storyId) return alert("ID truyện không hợp lệ");
   if (!confirm("Bạn chắc chắn muốn xóa truyện này?")) return;
 
   try {
-    // Xóa story trực tiếp
     const res = await fetch(`/admin/api/stories/${storyId}`, { method: 'DELETE' });
     const data = await res.json();
 
@@ -219,9 +200,7 @@ async function deleteStory() {
   }
 }
 
-// =====================
-// 8. Modal helpers
-// =====================
+// Modal helpers
 function showModal(id){
     const modal = document.getElementById(id);
     modal.style.display="block";
@@ -256,9 +235,7 @@ function resetModal(){
     document.getElementById("modalChaptersList").innerHTML="";
 }
 
-// =====================
-// 9. Init
-// =====================
+// Init
 document.addEventListener("DOMContentLoaded",()=>{
     loadCategories();
     fetchStories();

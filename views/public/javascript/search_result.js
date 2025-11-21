@@ -1,4 +1,4 @@
-// 🔍 Hàm tìm kiếm truyện theo từ khóa
+// Hàm tìm kiếm truyện theo từ khóa
 async function performSearch(query) {
   if (!query) return;
 
@@ -7,17 +7,15 @@ async function performSearch(query) {
     if (!response.ok) throw new Error("Không thể kết nối đến server");
     let data = await response.json();
 
-    // 🔹 Lọc chỉ lấy truyện control = 1
     data = data.filter(story => story.control === 1);
 
-    // 🔹 Sắp xếp theo thời gian cập nhật mới nhất (latestChapter > updatedAt > createdAt)
     data.sort((a, b) => {
       const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
       const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
-      return (dateB.getTime() || 0) - (dateA.getTime() || 0); // mới nhất trước
+      return (dateB.getTime() || 0) - (dateA.getTime() || 0);
     });
 
-    await renderSearchResults(data); // await để đảm bảo view được load
+    await renderSearchResults(data); 
   } catch (error) {
     console.error("Search error:", error);
     const container = document.getElementById("searchResults");
@@ -26,7 +24,7 @@ async function performSearch(query) {
   }
 }
 
-// 🧩 Hàm render danh sách kết quả với tổng view live
+// Hàm render danh sách kết quả với tổng view live
 async function renderSearchResults(stories) {
   const container = document.getElementById("searchResults");
   if (!container) return;
@@ -65,17 +63,14 @@ async function renderSearchResults(stories) {
 
     row.appendChild(col);
 
-    // ✅ VIEW
     fetch(`/api/story/${story._id}/views`)
       .then(r => r.json())
       .then(d => col.querySelector(".story-views").textContent = d.total_views ?? 0);
 
-    // ✅ VOTE
     fetch(`/api/story/${story._id}/votes`)
       .then(r => r.json())
       .then(d => col.querySelector(".story-votes").textContent = d.total_votes ?? 0);
 
-    // ✅ CHAPTER
     fetch(`/api/story/${story._id}/chapters/published`)
       .then(r => r.json())
       .then(d => col.querySelector(".story-chapters").textContent = d.total_chapters ?? 0);
@@ -84,7 +79,7 @@ async function renderSearchResults(stories) {
   container.appendChild(row);
 }
 
-// 🧠 Bắt sự kiện submit form tìm kiếm (ở mọi trang)
+// Bắt sự kiện submit form tìm kiếm (ở mọi trang)
 document.querySelectorAll(".search-form").forEach((form) => {
   form.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -94,7 +89,6 @@ document.querySelectorAll(".search-form").forEach((form) => {
   });
 });
 
-// 🚀 Khi trang search_result.html được load, tự động gọi API tìm kiếm
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const query = params.get("query");
@@ -105,7 +99,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 🧱 Hàm escape HTML (ngăn XSS)
 function escapeHtml(s) {
   if (!s) return "";
   return s.replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));

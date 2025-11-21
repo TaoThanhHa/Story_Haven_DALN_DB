@@ -1,14 +1,10 @@
-// middleware/authMiddleware.js
-
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) return next();
 
-  // API → trả JSON 401
   if (req.originalUrl.startsWith("/api") || req.originalUrl.startsWith("/admin/api")) {
     return res.status(401).json({ error: "Unauthorized: Vui lòng đăng nhập." });
   }
 
-  // Page → redirect login
   req.session.returnTo = req.originalUrl;
   return res.redirect("/login");
 };

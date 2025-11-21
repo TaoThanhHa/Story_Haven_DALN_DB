@@ -8,14 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const email = document.getElementById('email').value;
 
-        // Xóa thông báo cũ
         messageDiv.textContent = '';
         errorMessageDiv.textContent = '';
 
         try {
-            // Đây là nơi bạn sẽ gửi yêu cầu đến máy chủ của mình
-            // để xử lý yêu cầu quên mật khẩu.
-            // Ví dụ:
             const response = await fetch('/api/forgot-password', {
                 method: 'POST',
                 headers: {
@@ -28,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 messageDiv.textContent = data.message || 'Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email của bạn.';
-                forgotPasswordForm.reset(); // Xóa form sau khi gửi thành công
+                forgotPasswordForm.reset(); 
             } else {
                 errorMessageDiv.textContent = data.error || 'Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.';
             }

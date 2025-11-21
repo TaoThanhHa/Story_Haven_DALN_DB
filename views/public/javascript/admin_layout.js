@@ -1,5 +1,3 @@
-// public/javascript/admin_layout.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const toggleSidebarBtn = document.querySelector('.toggle-sidebar');
     const navLinks = document.querySelectorAll('.sidebar-nav ul li a');

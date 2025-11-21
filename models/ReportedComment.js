@@ -4,12 +4,12 @@ const Schema = mongoose.Schema;
 const reportedCommentSchema = new Schema({
     commentId: {
         type: Schema.Types.ObjectId,
-        ref: 'Comment', // Tham chiếu đến model Comment nếu có
+        ref: 'Comment',
         required: true
     },
     reporterId: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Tham chiếu đến model User nếu có
+        ref: 'User', 
         required: true
     },
     reason: {
@@ -26,7 +26,7 @@ const reportedCommentSchema = new Schema({
         default: 'pending'
     }
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 const ReportedComment = mongoose.model('ReportedComment', reportedCommentSchema);

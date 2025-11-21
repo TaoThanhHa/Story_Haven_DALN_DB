@@ -18,7 +18,7 @@ const commentController = {
     }
   },
 
-  // ==================== ADD COMMENT ====================
+  // ====================COMMENT ====================
   addComment: async (req, res) => {
     try {
       const { chapterId, content } = req.body;
@@ -38,7 +38,43 @@ const commentController = {
     }
   },
 
-  // ==================== ADD REPLY ====================
+  editComment: async (req, res) => {
+    try {
+      const { commentId, content } = req.body;
+      const userId = req.session.user._id;
+
+      const comment = await Comment.findById(commentId);
+      if (!comment) return res.status(404).json({ error: "Comment không tồn tại" });
+      if (comment.userId.toString() !== userId) return res.status(403).json({ error: "Không có quyền" });
+
+      comment.content = content;
+      await comment.save();
+
+      res.status(200).json({ success: true, comment });
+    } catch (err) {
+      console.error("editComment:", err);
+      res.status(500).json({ error: "Lỗi server" });
+    }
+  },
+
+  deleteComment: async (req, res) => {
+    try {
+      const { commentId } = req.params;
+      const userId = req.session.user._id;
+
+      const comment = await Comment.findById(commentId);
+      if (!comment) return res.status(404).json({ error: "Comment không tồn tại" });
+      if (comment.userId.toString() !== userId) return res.status(403).json({ error: "Không có quyền" });
+
+      await Comment.findByIdAndDelete(commentId);
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error("deleteComment:", err);
+      res.status(500).json({ error: "Lỗi server" });
+    }
+  },
+  
+  // ==================== REPLY ====================
   addReply: async (req, res) => {
     try {
       const { commentId, content } = req.body;
@@ -60,45 +96,6 @@ const commentController = {
     }
   },
 
-  // ==================== EDIT COMMENT ====================
-  editComment: async (req, res) => {
-    try {
-      const { commentId, content } = req.body;
-      const userId = req.session.user._id;
-
-      const comment = await Comment.findById(commentId);
-      if (!comment) return res.status(404).json({ error: "Comment không tồn tại" });
-      if (comment.userId.toString() !== userId) return res.status(403).json({ error: "Không có quyền" });
-
-      comment.content = content;
-      await comment.save();
-
-      res.status(200).json({ success: true, comment });
-    } catch (err) {
-      console.error("editComment:", err);
-      res.status(500).json({ error: "Lỗi server" });
-    }
-  },
-
-  // ==================== DELETE COMMENT ====================
-  deleteComment: async (req, res) => {
-    try {
-      const { commentId } = req.params;
-      const userId = req.session.user._id;
-
-      const comment = await Comment.findById(commentId);
-      if (!comment) return res.status(404).json({ error: "Comment không tồn tại" });
-      if (comment.userId.toString() !== userId) return res.status(403).json({ error: "Không có quyền" });
-
-      await Comment.findByIdAndDelete(commentId);
-      res.status(200).json({ success: true });
-    } catch (err) {
-      console.error("deleteComment:", err);
-      res.status(500).json({ error: "Lỗi server" });
-    }
-  },
-
-  // ==================== EDIT REPLY ====================
   editReply: async (req, res) => {
     try {
       const { replyId, content } = req.body;
@@ -120,7 +117,6 @@ const commentController = {
     }
   },
 
-  // ==================== DELETE REPLY ====================
   deleteReply: async (req, res) => {
     try {
       const { replyId } = req.params;

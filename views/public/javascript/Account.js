@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // === Phần tử DOM chính ===
     const profileFullName = document.getElementById("profileFullName");
     const profileUsername = document.getElementById("profileUsername");
     const storyNameElement = document.getElementById("storyName");
@@ -46,7 +45,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentProfileUserId = null;
     let loggedInUserId = LOGGED_IN_USER_ID ? String(LOGGED_IN_USER_ID) : null;
 
-    // === Hàm preview ảnh avatar khi chọn file ===
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', function () {
             const file = this.files[0];
@@ -62,13 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // === Hàm lấy ID người dùng từ URL ===
     const getUserIdFromUrl = () => {
         const parts = window.location.pathname.split('/');
         return parts[1] === "account" ? parts[2] : null;
     };
 
-    // === Event click card followers/following ===
     if (cardFollowersHeaderClickable) {
         cardFollowersHeaderClickable.style.cursor = 'pointer';
         cardFollowersHeaderClickable.addEventListener('click', () => {
@@ -125,7 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // === Fetch following/followers ===
     const fetchFollowingUsers = async (userId) => {
         try {
             const res = await fetch(`/api/user/${userId}/following`);
@@ -179,8 +174,6 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const userIdInUrl = getUserIdFromUrl();
             const isOwnProfile = loggedInUserId && loggedInUserId === (userIdInUrl || loggedInUserId);
-
-            // Hiển thị/ẩn tab cài đặt
             if (settingsTab) settingsTab.style.display = isOwnProfile ? "inline-block" : "none";
 
             const url = userIdInUrl ? `/api/account/${userIdInUrl}` : '/api/user/account-info';
@@ -192,7 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const profileUser = data.profileUser || data.user || data;
             currentProfileUserId = profileUser._id ? String(profileUser._id) : null;
 
-            // Cập nhật avatar và info
             const avatarSrc = profileUser.avatar || "/images/default-avatar.png";
             if (profileMainAvatar) profileMainAvatar.src = avatarSrc;
             if (avatarPreview) avatarPreview.src = avatarSrc;
@@ -200,11 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (profileFullName) profileFullName.textContent = profileUser.username || "Người dùng";
             if (profileUsername) profileUsername.textContent = profileUser.username || "username";
             if (storyNameElement) storyNameElement.textContent = profileUser.username || "username";
-
-            // Chỉ cập nhật avatar navbar nếu là chính mình
             if (isOwnProfile && navbarAvatarImg) navbarAvatarImg.src = avatarSrc;
-
-            // Hiển thị nút follow nếu không phải profile của chính mình
             if (!isOwnProfile && followButton) {
                 followButton.style.display = 'inline-block';
                 followButton.textContent = data.isFollowing ? "Đã theo dõi" : "Theo dõi";
@@ -212,18 +200,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 followButton.classList.toggle('btn-primary', !data.isFollowing);
             } else if (followButton) followButton.style.display = 'none';
 
-            // Cập nhật số lượng followers/following
             if (followersCountDisplay) followersCountDisplay.textContent = data.followersCount || user.followers?.length || 0;
             if (followingCountDisplay) followingCountDisplay.textContent = data.followingCount || user.following?.length || 0;
             if (followersCountInCard) followersCountInCard.textContent = data.followersCount || user.followers?.length || 0;
             if (followingCountInCard) followingCountInCard.textContent = data.followingCount || user.following?.length || 0;
 
-            // Gọi fetch các danh sách và stories
             fetchFollowingUsers(currentProfileUserId);
             fetchFollowersUsers(currentProfileUserId);
             fetchStories(currentProfileUserId);
 
-            // === Cập nhật form cài đặt nếu là chính mình ===
             if (isOwnProfile && editProfileForm) {
                 document.getElementById("name").value = user.name || user.username || "";
                 document.getElementById("email").value = user.email || "";
@@ -240,7 +225,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadProfile();
 
-    // === Follow/unfollow ===
     followButton.addEventListener('click', async () => {
         if (!loggedInUserId) return window.location.href = '/login';
         if (currentProfileUserId === loggedInUserId) return;
@@ -367,7 +351,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === Tabs ===
     tabs.forEach(tab => tab.addEventListener('click', () => {
         tabs.forEach(t=>t.classList.remove('tab--active'));
         sections.forEach(s=>s.classList.remove('content__section--active'));

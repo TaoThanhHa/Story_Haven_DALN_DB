@@ -67,10 +67,8 @@ async function fetchStories(page = 1) {
     const data = await response.json();
 
     if (response.ok && data.success) {
-      // Chỉ lấy stories control = 1 (backend đã filter rồi, nhưng giữ an toàn)
       const filteredStories = data.stories.filter(s => s.visibility === "public");
 
-      // Sort giống my_story: latestChapter > updatedAt > createdAt
       filteredStories.sort((a, b) => {
         const dateA = new Date(a.latestChapter?.updatedAt || a.updatedAt || a.createdAt);
         const dateB = new Date(b.latestChapter?.updatedAt || b.updatedAt || b.createdAt);
@@ -93,12 +91,11 @@ async function fetchStories(page = 1) {
   }
 }
 
-// 🧩 Cập nhật phân trang
+// Cập nhật phân trang
 function updatePagination() {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = "";
 
-  // Trang trước
   pagination.innerHTML += `
     <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
       <button class="page-link" onclick="fetchStories(${currentPage - 1})">«</button>
@@ -138,7 +135,6 @@ function updatePagination() {
     `;
   }
 
-  // Trang sau
   pagination.innerHTML += `
     <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
       <button class="page-link" onclick="fetchStories(${currentPage + 1})">»</button>
@@ -146,7 +142,7 @@ function updatePagination() {
   `;
 }
 
-// 🚀 Load khi DOM sẵn sàng
+// Load khi DOM sẵn sàng
 document.addEventListener("DOMContentLoaded", () => {
   fetchStories();
 });

@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   let isSaving = false;
   let nextChapterNumber = 1;
 
-  // 🧩 Thanh trạng thái lưu
   const statusBar = document.createElement("div");
   statusBar.id = "save-status";
   statusBar.style.fontSize = "14px";
@@ -19,13 +18,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   statusBar.textContent = "💾 Chưa lưu";
   document.querySelector(".actions").appendChild(statusBar);
 
-  // 🧩 Kiểm tra ID truyện
   if (!STORY_ID) {
     alert("Không tìm thấy ID truyện!");
     return;
   }
 
-  // 🧩 Ngăn người dùng xuống dòng khi nhập tiêu đề
   storyTitle.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -33,7 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // 🧩 Lấy số chương cao nhất
   async function getMaxChapter(storyId) {
     try {
       const res = await fetch(`/api/chapters/max?storyId=${storyId}`);
@@ -46,21 +42,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await getMaxChapter(STORY_ID);
 
-  // 🧩 Tạo đoạn văn trống mặc định
   if (storyEditor && storyEditor.innerText.trim() === "") {
     const newParagraph = document.createElement("p");
     newParagraph.textContent = "";
     storyEditor.appendChild(newParagraph);
   }
 
-  // 🧩 Kiểm tra thay đổi nội dung
   function hasChanges() {
     const currentTitle = storyTitle.innerText.trim();
     const currentContent = storyEditor.innerText.trim();
     return currentTitle !== lastTitle || currentContent !== lastContent;
   }
 
-  // 🧩 Hàm lưu chương
+  // Hàm lưu chương
   async function saveStory(isAuto = false) {
     const title = storyTitle.innerText.trim();
     const content = storyEditor.innerText.trim();
@@ -123,13 +117,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // 🧩 Tự động lưu mỗi 30 giây khi có thay đổi
   setInterval(() => {
     if (!isSaving && hasChanges()) {
       saveStory(true);
     }
   }, 30000);
 
-  // ✅ Export hàm ra global scope
   window.saveStory = saveStory;
 });

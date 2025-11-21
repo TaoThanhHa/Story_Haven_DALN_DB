@@ -34,24 +34,20 @@
 <%- include('header.ejs', { loggedInUser: typeof user !== 'undefined' ? user : null }) %>
 
     <div class="container1">
-        <!-- Phần hiển thị thông báo -->
         <div id="successMessage" class="alert alert-success" style="display: none;"></div>
         <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
         <section class="profile">
             <div class="profile__background"></div>
-            <!-- Thay đổi ảnh mặc định và thêm ID nếu muốn cập nhật bằng JS -->
+            
             <div class="profile__avatar"><img src="/images/schwi.png" alt="Avatar của " id="profileMainAvatar"></div>
             <div class="profile__info">
                 <h2 class="profile__name" id="profileFullName"></h2>
                 <p class="profile__username">@<span id="profileUsername"></span></p>
                 <div class="profile__stats">
                     <span><i class="fa fa-book"></i> <span id="storyCount">0</span> Tác phẩm</span>
-                    <!-- Thay đổi tại đây: thêm ID cho span bao quanh hoặc toàn bộ khu vực -->
-                    <!-- Tốt nhất là thêm ID vào span cha của icon và số để dễ click -->
                     <span id="followersClickableArea"><i class="fa fa-user-friends"></i> <span id="followersCountDisplay">0</span> Người theo dõi</span>
                     <span id="followingClickableArea"><i class="fa fa-users"></i> <span id="followingCountDisplay">0</span> Đang theo dõi</span>
                 </div>
-                <!-- Nút Follow/Unfollow, chỉ hiện khi xem profile người khác -->
                 <button id="followButton" class="btn btn-primary mt-3" style="display:none;"></button>
             </div>
         </section>
@@ -59,7 +55,6 @@
         <nav class="tabs">
             <button class="tab tab--active" data-tab="gioithieu"><i class="fa fa-info-circle"></i> Giới thiệu</button>
             <button class="tab" data-tab="hoithoai"><i class="fa fa-comments"></i> Hội thoại</button>
-            <!-- Ẩn tab cài đặt nếu đang xem profile của người khác -->
             <button class="tab" data-tab="caidat" id="settingsTab" style="display:none;">
                 <i class="fas fa-cog"></i> Cài đặt
             </button>
@@ -76,22 +71,16 @@
                                 <p id="profileDescriptionContent" class="profile__description-text">Chưa có mô tả.</p>
                             </div>
 
-                            <!-- Card Đang theo dõi (Hiển thị người mà user hiện tại đang theo dõi) -->
                             <div class="card mb-3" id="followingListCard">
-                                <!-- THÊM ID CHO THẺ H3 ĐỂ CÓ THỂ CLICK VÀO TOÀN BỘ DÒNG -->
                                 <h3 id="cardFollowingHeaderClickable"><i class="fa fa-heart"></i> Đang theo dõi <span class="badge bg-secondary" id="followingCountInCard">0</span></h3>
                                 <div class="following-list" id="followingUsersList">
-                                    <!-- Danh sách người đang theo dõi sẽ được thêm vào đây bằng JavaScript -->
                                     <p id="noFollowingMessage" style="display: none;">Chưa theo dõi ai.</p>
                                 </div>
                             </div>
 
-                            <!-- Card Người theo dõi (Hiển thị người đang theo dõi user hiện tại) -->
                             <div class="card" id="followersListCard">
-                                <!-- THÊM ID CHO THẺ H3 ĐỂ CÓ THỂ CLICK VÀO TOÀN BỘ DÒNG -->
                                 <h3 id="cardFollowersHeaderClickable"><i class="fa fa-user-friends"></i> Người theo dõi <span class="badge bg-secondary" id="followersCountInCard">0</span></h3>
                                 <div class="following-list" id="followersUsersList">
-                                    <!-- Danh sách người theo dõi sẽ được thêm vào đây bằng JavaScript -->
                                     <p id="noFollowersMessage" style="display: none;">Chưa có người theo dõi.</p>
                                 </div>
                             </div>
@@ -103,7 +92,6 @@
                                     <p class="text-muted"><span id="publishedStories">0</span>  • <span id="draftStories">0</span> Truyện đã Đăng</p> <!--Phần này chỉ hiện khi người dùng vào hồ sơ cá nhân-->
                                 </div>
                                 <div class="work-list" id="workList">
-                                    <!-- Story items will be dynamically added here -->
                                 </div>
                             </div>
                         </div>
@@ -112,7 +100,6 @@
             </section>
 
             <section id="hoithoai" class="content__section">
-                <!-- Giữ nguyên phần bình luận -->
                 <div class="card">
                     <div class="title-cmt">Bình luận</div>
                     <div class="cmt">
@@ -136,11 +123,9 @@
                 </div>
             </section>
 
-            <!-- Phần form chỉnh sửa thông tin tài khoản, chỉ hiện khi xem profile của chính mình -->
             <section id="caidat" class="content__section">
                 <div class="card">
                     <h3>Chỉnh sửa thông tin cá nhân</h3>
-                    <!-- THÊM enctype="multipart/form-data" để upload file -->
                     <form id="editProfileForm" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="avatarFile" class="form-label">Cập nhật ảnh đại diện:</label>
@@ -174,7 +159,6 @@
     </div>
 
     <script>
-        // Khai báo một biến global JavaScript để lưu trữ ID người dùng
         const LOGGED_IN_USER_ID = "<%= user ? user._id : '' %>";
     </script>
     <script src="../javascript/Account.js"></script>

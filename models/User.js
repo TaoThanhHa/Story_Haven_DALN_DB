@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-// 🧱 Định nghĩa Schema tương đương bảng `users` trong MySQL
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -49,12 +48,11 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  // BỔ SUNG HAI TRƯỜNG MỚI NÀY
-  following: [{ // Danh sách những người dùng mà user này đang theo dõi
+  following: [{ 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  followers: [{ // Danh sách những người dùng đang theo dõi user này
+  followers: [{ 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }]
@@ -63,7 +61,6 @@ const userSchema = new mongoose.Schema({
   collection: 'users'
 });
 
-// 🔐 Tự động mã hoá mật khẩu khi lưu
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   try {
@@ -75,7 +72,6 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// 🧩 So sánh mật khẩu
 userSchema.methods.comparePassword = async function (passwordInput) {
   return bcrypt.compare(passwordInput, this.password);
 };

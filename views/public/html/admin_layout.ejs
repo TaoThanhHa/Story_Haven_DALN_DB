@@ -4,14 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Panel - Story Haven' %></title>
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
-    <!-- CSS layout chính -->
     <link rel="stylesheet" href="../css/admin_layout.css">
-
-    <!-- CSS riêng cho trang con -->
     <% if (typeof pageCss !== 'undefined' && pageCss) { %>
         <link rel="stylesheet" href="/css/<%- pageCss %>">
     <% } %>
@@ -58,10 +52,7 @@
         </div>
     </div>
 
-    <!-- JS layout chính -->
     <script src="/javascript/admin_layout.js"></script>
-
-    <!-- JS riêng cho trang con -->
     <% if (typeof pageJs !== 'undefined' && pageJs) { %>
         <script src="/javascript/<%- pageJs %>"></script>
     <% } %>

@@ -1,5 +1,3 @@
-// public/js/admin_comments.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('reportedCommentsTableBody');
     const searchInput = document.getElementById('searchInput');
@@ -40,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     let totalPages = 1;
     let currentSearch = '';
-    let currentStatusFilter = 'pending'; // Mặc định hiển thị "Chờ xử lý"
+    let currentStatusFilter = 'pending'; 
     let currentReasonFilter = '';
-    let currentReportId = null; // Biến để lưu ID báo cáo đang xem trong modal
+    let currentReportId = null; 
 
     async function fetchReportedComments() {
         try {
@@ -72,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = tableBody.insertRow();
             row.insertCell().textContent = comment.report_id;
             row.insertCell().textContent = comment.comment_id;
-            // Giới hạn nội dung bình luận để dễ nhìn
             row.insertCell().textContent = comment.comment_content ? comment.comment_content.substring(0, 50) + (comment.comment_content.length > 50 ? '...' : '') : '';
             row.insertCell().textContent = comment.comment_author;
             row.insertCell().textContent = comment.reporter_username;
@@ -105,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const report = await response.json();
 
-            // Điền thông tin vào modal
             modalReportId.textContent = report.report_id;
             modalCommentId.textContent = report.comment_id;
             modalCommentType.textContent = report.comment_type;
@@ -124,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
             modalAdminUsername.textContent = report.admin_username || 'N/A';
             modalActionTaken.value = report.action_taken || '';
 
-            // Điền giá trị cho form xử lý của admin
             adminReportStatusSelect.value = report.report_status;
             adminActionTakenTextarea.value = report.action_taken || '';
             adminCommentStatusSelect.value = report.comment_status;
@@ -138,15 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeButton.addEventListener('click', () => {
         commentDetailModal.style.display = 'none';
-        currentReportId = null; // Reset ID báo cáo
-        fetchReportedComments(); // Tải lại danh sách sau khi đóng modal
+        currentReportId = null; 
+        fetchReportedComments(); 
     });
 
     window.addEventListener('click', (event) => {
         if (event.target === commentDetailModal) {
             commentDetailModal.style.display = 'none';
-            currentReportId = null; // Reset ID báo cáo
-            fetchReportedComments(); // Tải lại danh sách sau khi đóng modal
+            currentReportId = null; 
+            fetchReportedComments(); 
         }
     });
 
@@ -182,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirm('Bạn có chắc chắn muốn lưu các thay đổi này?')) {
             try {
-                // Cập nhật trạng thái báo cáo
                 const reportResponse = await fetch(`/admin/api/reported-comments/${currentReportId}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -193,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`HTTP error! status: ${reportResponse.status} khi cập nhật báo cáo`);
                 }
 
-                // Cập nhật trạng thái bình luận gốc (nếu có thay đổi)
                 if (newCommentStatus !== modalCommentStatus.textContent) {
                     const commentResponse = await fetch(`/admin/api/comments/${commentId}/status`, {
                         method: 'PUT',
@@ -207,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 alert('Hành động admin đã được lưu thành công!');
                 commentDetailModal.style.display = 'none';
-                fetchReportedComments(); // Tải lại danh sách
+                fetchReportedComments(); 
             } catch (error) {
                 console.error('Lỗi khi lưu hành động admin:', error);
                 alert('Có lỗi xảy ra khi lưu hành động admin. Vui lòng kiểm tra console.');
@@ -257,6 +250,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Tải dữ liệu lần đầu khi trang được load
     fetchReportedComments();
 });

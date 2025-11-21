@@ -1,4 +1,3 @@
-// views/public/javascript/reset_password.js
 document.addEventListener('DOMContentLoaded', () => {
     const resetPasswordForm = document.getElementById('resetPasswordForm');
     const messageDiv = document.getElementById('message');
@@ -18,9 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Lấy token từ URL (ví dụ: /reset-password/YOUR_TOKEN_HERE)
         const pathSegments = window.location.pathname.split('/');
-        const token = pathSegments[pathSegments.length - 1]; // Lấy phần tử cuối cùng
+        const token = pathSegments[pathSegments.length - 1]; 
 
         if (!token) {
             errorMessageDiv.textContent = 'Token đặt lại mật khẩu không tìm thấy trong URL.';
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 messageDiv.textContent = data.message || 'Mật khẩu đã được đặt lại thành công!';
                 resetPasswordForm.reset();
-                // Tùy chọn: Chuyển hướng về trang đăng nhập sau một thời gian
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 3000);

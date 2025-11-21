@@ -15,19 +15,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ==================== MULTER CONFIG for Avatars ====================
-// Thêm cấu hình Multer riêng cho avatar để lưu vào cùng thư mục
 const avatarStorage = multer.diskStorage({
     destination: path.join(__dirname, '..', 'views', 'public', 'images'),
     filename: (req, file, cb) => {
-        // Đảm bảo req.session.user._id tồn tại khi upload avatar
         const userId = req.session.user ? req.session.user._id : 'guest';
         cb(null, 'avatar-' + userId + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 const uploadAvatar = multer({ storage: avatarStorage });
 
-// ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = (req, res, next) => {
     if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
     next();
@@ -45,6 +41,7 @@ router.put('/story/:id/control', apiController.updateStoryControl);
 router.put('/story/:id/thumbnail', upload.single('thumbnail'), apiController.updateThumnail);
 router.delete('/story/:id', apiController.deleteStory);
 router.get("/story/:storyId/recommend", apiController.getRecommendedStories);
+
 // ==================== CHAPTER ====================
 router.get('/story/:id/chapters', chapController.getChaptersByStory);
 router.post('/chapter/new', authMiddleware, chapController.createChapter);
@@ -63,11 +60,13 @@ router.get("/reading/:storyId", chapController.getContinueChapter);
 router.post("/chapter/view", chapController.addChapterView);
 router.get("/chapter/:chapterId/views", chapController.getChapterViews);
 router.get("/story/:storyId/views", chapController.getStoryViews);
+
 // ==================== VOTE ====================
 router.post('/chapter/vote', chapController.toggleVote);
 router.get("/chapter/:chapterId/votes", chapController.getChapterVotes);
 router.get("/chapter/:chapterId/votes/user", chapController.getUserVoteStatus);
 router.get('/story/:storyId/votes', chapController.getTotalStoryVotes);
+
 // ==================== COMMENT ====================
 router.get("/chapter/:chapterId/comments", commentController.getCommentsByChapter);
 router.post("/chapter/comment/new", commentController.addComment);
@@ -76,11 +75,13 @@ router.delete("/chapter/comment/:commentId", commentController.deleteComment);
 router.post("/chapter/comment/reply", commentController.addReply);
 router.put("/chapter/comment/reply/edit", commentController.editReply);
 router.delete("/chapter/comment/reply/:replyId", commentController.deleteReply);
+
 // ==================== FOLLOW ====================
 router.post("/story/follow", authMiddleware, apiController.toggleFollow);
 router.get("/story/follow-status/:storyId", authMiddleware, apiController.checkFollowStatus);
 router.get("/library", authMiddleware, apiController.getLibrary);
 router.get("/story/:storyId/followers", apiController.getStoryFollowers);
+
 // ==================== SEARCH ====================
 router.get('/stories/search', apiController.searchStories);
 router.get('/stories/category', apiController.getStoriesByCategory);
@@ -92,12 +93,12 @@ router.post('/login', apiController.login);
 router.get('/user/account-info', authMiddleware, apiController.getAccountInfo);
 router.get('/user/:userId/stories', apiController.getStoriesByUser);
 router.put('/user/update-profile', authMiddleware, uploadAvatar.single('avatarFile'), apiController.updateUserProfile);
+
 // ==================== AUTH / PASSWORD RESET ====================
 router.post('/forgot-password', apiController.forgotPassword);
-// Đây là route mà frontend sẽ gửi mật khẩu mới đến sau khi người dùng nhấp vào link trong email
 router.post('/reset-password/:token', apiController.resetPassword);
 
-//FOLLOW USER
+// ==================== FOLLOW USER ====================
 router.get("/account/:userId", apiController.getUserProfile);
 router.post('/user/:userId/follow', authMiddleware, apiController.toggleUserFollow); 
 router.get('/user/:userId/followers', apiController.getFollowersUsers);

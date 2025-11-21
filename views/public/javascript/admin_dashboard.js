@@ -1,5 +1,3 @@
-// public/javascript/admin_dashboard.js
-
 let newStoriesChartInstance = null; 
 let storyCategoriesChartInstance = null; 
 
@@ -19,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
 
-            // Gán giá trị lỗi mà không phá vỡ giao diện
             safeSetText('totalUsers', 'Lỗi');
             safeSetText('totalStories', 'Lỗi');
             safeSetText('totalComments', 'Lỗi');

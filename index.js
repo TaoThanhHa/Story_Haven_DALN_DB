@@ -13,7 +13,6 @@ const adminRoutes = require('./routers/adminRoutes');
 const app = express();
 const PORT = 3000;
 
-// Middleware cơ bản
 app.use(express.static(path.join(__dirname, 'views/public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,7 +40,6 @@ app.use(session({
     }
 }));
 
-// Truyền user vào EJS
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     next();
@@ -56,9 +54,8 @@ app.use('/api', apiRoutes);
 app.use('/admin', adminRoutes);
 app.use('/', htmlRoutes);
 
-// Xử lý 404 tổng quát (đặt ở cuối cùng)
 app.use((req, res) => {
-    res.status(404).render('404'); // Đảm bảo bạn có file 404.ejs
+    res.status(404).render('404');
 });
 
 app.listen(PORT, () => {

@@ -2,7 +2,6 @@ a {
     text-decoration: none; 
     color: inherit; 
 }
-
 /* Card truyện */
 .storyBox{
   display: flex;
@@ -61,7 +60,7 @@ a {
 }
 
 .btn:hover{
-    background-color: #00203fff;
+  background-color: #00203fff;
   border-color: #00203fff;
   color: #adefd1ff;
   font-weight: bold;

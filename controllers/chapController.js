@@ -30,7 +30,6 @@ createChapter: async (req, res) => {
     if (story.status === "completed")
       return res.status(403).json({ error: "Truyện đã hoàn thành, không thể thêm chương!" });
 
-    // Lấy số chapter_number lớn nhất hiện có (nếu muốn)
     const lastChapter = await Chapter.findOne({ storyId }).sort({ chapter_number: -1 }).lean();
     const nextNumber = lastChapter ? lastChapter.chapter_number + 1 : 1;
 
@@ -123,11 +122,9 @@ createChapter: async (req, res) => {
     }
   },
 
-  // Cập nhật lại thứ tự chương (drag & drop)
   reorderChapters: async (req, res) => {
     try {
       const { storyId, newOrder } = req.body; 
-      // newOrder là mảng [{chapterId, chapter_number}, ...]
 
       if (!storyId || !Array.isArray(newOrder))
         return res.status(400).json({ success: false, message: "Dữ liệu không hợp lệ" });
@@ -154,14 +151,12 @@ createChapter: async (req, res) => {
 
       if (!chapterId) return res.status(400).json({ error: "Thiếu chapterId" });
 
-      // Tạo record view mới (tính mọi lần đọc)
       await ChapterView.create({
         user_id: userId,
         ip_address: ip,
         chapter_id: chapterId,
       });
 
-      // Cập nhật số view tổng cho Chapter
       const totalViews = await ChapterView.countDocuments({ chapter_id: chapterId });
       await Chapter.findByIdAndUpdate(chapterId, { views: totalViews });
 
@@ -172,7 +167,6 @@ createChapter: async (req, res) => {
     }
   },
 
-  // 📊 Lấy tổng lượt xem 1 chapter
   getChapterViews: async (req, res) => {
     try {
       const { chapterId } = req.params;
@@ -184,7 +178,6 @@ createChapter: async (req, res) => {
     }
   },
 
-  // 📊 Lấy tổng lượt xem tất cả chapter của 1 story
   getStoryViews: async (req, res) => {
     try {
       const { storyId } = req.params;
@@ -198,7 +191,6 @@ createChapter: async (req, res) => {
     }
   },
 
- // === TOGGLE VOTE ===
   toggleVote: async (req, res) => {
     try {
       const { chapterId } = req.body;
@@ -231,7 +223,6 @@ createChapter: async (req, res) => {
     }
   },
 
-  // === KIỂM TRA VOTE CỦA USER ===
   getUserVoteStatus: async (req, res) => {
     try {
       const userId = req.session.user ? (req.session.user._id || req.session.user._id) : null;
@@ -248,7 +239,6 @@ createChapter: async (req, res) => {
     }
   },
 
-  // === LẤY TỔNG VOTE CHƯƠNG ===
   getChapterVotes: async (req, res) => {
     try {
       const { chapterId } = req.params;
@@ -266,16 +256,11 @@ createChapter: async (req, res) => {
         const { storyId } = req.params;
         if (!storyId) return res.status(400).json({ error: "Thiếu storyId" });
 
-        // Ép kiểu storyId về ObjectId để match trong Mongo
         const storyObjectId = new mongoose.Types.ObjectId(storyId);
-
-        // Lấy tất cả chương thuộc truyện
         const chapters = await Chapter.find({ storyId: storyObjectId }).select("_id").lean();
         if (!chapters.length) return res.json({ total_votes: 0 });
 
         const chapterIds = chapters.map(ch => ch._id);
-
-        // Đếm tổng vote từ ChapterVote
         const totalVotes = await ChapterVote.countDocuments({ chapterId: { $in: chapterIds } });
 
         return res.json({ total_votes: totalVotes });
@@ -285,7 +270,6 @@ createChapter: async (req, res) => {
     }
     },
 
-    // ✅ Đếm chapter đã đăng (control = 1)
     getPublishedChapterCount: async (req, res) => {
     try {
         const { storyId } = req.params;
@@ -297,7 +281,6 @@ createChapter: async (req, res) => {
     }
     },
 
-    // ✅ Đếm cả đã đăng & bản thảo
     getAllChapterCount: async (req, res) => {
     try {
         const { storyId } = req.params;

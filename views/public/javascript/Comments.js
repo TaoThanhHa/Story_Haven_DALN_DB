@@ -49,7 +49,6 @@ function createCommentElement(cmt) {
 }
 
 // ==================== LOAD COMMENTS ====================
-// ==================== LOAD COMMENTS ====================
 async function loadComments() {
   if (!CHAPTERCURRENT) return;
   try {
@@ -57,7 +56,6 @@ async function loadComments() {
     const data = await res.json();
     commentsList.innerHTML = "";
     if (data.success && data.comments.length) {
-      // Sắp xếp comment mới nhất lên trước
       const sortedComments = data.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       sortedComments.forEach(cmt => commentsList.appendChild(createCommentElement(cmt)));
     }
@@ -92,7 +90,6 @@ commentsList.addEventListener("click", async e => {
   const commentId = commentEl.dataset.commentId;
   const replyId = commentEl.dataset.replyId;
 
-  // Delete
   if (e.target.classList.contains("delete-comment-btn")) {
     if (!confirm("Bạn có chắc muốn xóa bình luận này?")) return;
     await fetch(`/api/chapter/comment/${commentId}`, { method: "DELETE" });
@@ -104,7 +101,6 @@ commentsList.addEventListener("click", async e => {
     loadComments();
   }
 
-  // Edit
   if (e.target.classList.contains("edit-comment-btn")) {
     const oldContent = commentEl.querySelector(".comment-content").innerText;
     const newContent = prompt("Nhập nội dung mới:", oldContent);
@@ -128,12 +124,9 @@ commentsList.addEventListener("click", async e => {
     loadComments();
   }
 
-// Reply
 if (e.target.classList.contains("reply-btn")) {
-  // Nếu đã có form reply đang mở thì không tạo thêm
   if (commentEl.querySelector(".reply-form")) return;
 
-  // Tạo form reply
   const form = document.createElement("form");
   form.className = "reply-form mt-2 d-flex";
 
@@ -150,7 +143,6 @@ if (e.target.classList.contains("reply-btn")) {
   form.appendChild(textarea);
   form.appendChild(btn);
 
-  // Thay vì append cuối, insert ngay dưới comment/reply được click
   commentEl.after(form);
 
   form.addEventListener("submit", async ev => {
@@ -158,7 +150,6 @@ if (e.target.classList.contains("reply-btn")) {
     const content = textarea.value.trim();
     if (!content) return;
 
-    // Lấy parent comment ID
     const parentCommentId = commentEl.dataset.commentId || commentEl.closest(".comment-item").dataset.commentId;
 
     try {
@@ -168,7 +159,6 @@ if (e.target.classList.contains("reply-btn")) {
         body: JSON.stringify({ commentId: parentCommentId, content })
       });
 
-      // Tải lại comment mới nhất, reply vẫn giữ nguyên thứ tự
       await loadComments();
     } catch (err) {
       console.error(err);
@@ -178,5 +168,4 @@ if (e.target.classList.contains("reply-btn")) {
 
 });
 
-// ==================== LOAD COMMENTS ON PAGE ====================
 document.addEventListener("DOMContentLoaded", loadComments);

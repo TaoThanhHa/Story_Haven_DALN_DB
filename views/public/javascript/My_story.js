@@ -108,17 +108,14 @@ async function renderStories(stories) {
     `;
     container.appendChild(div);
 
-// Update views
     fetch(`/api/story/${story._id}/views`)
       .then(r => r.json())
       .then(d => div.querySelector(".story-views").textContent = d.total_views ?? 0);
 
-    // Update votes
     fetch(`/api/story/${story._id}/votes`)
       .then(r => r.json())
       .then(d => div.querySelector(".story-votes").textContent = d.total_votes ?? 0);
 
-    // Update chapter counts
     fetch(`/api/story/${story._id}/chapters/count`)
       .then(r => r.json())
       .then(d => {

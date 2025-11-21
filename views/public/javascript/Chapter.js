@@ -5,8 +5,6 @@ if (menuToggle && menuContainer) {
     menuContainer.classList.toggle("open");
   });
 }
-
-// === CHAPTER & STORY STATE ===
 let CHAPTERCURRENT = null;
 let STORYID = null;
 let BACKCHAPTER = null;
@@ -24,7 +22,7 @@ async function initializeChapterPage() {
     CHAPTERCURRENT = pathSegments[4];
 
     await fetchStoryChapterData(STORYID, CHAPTERCURRENT);
-    checkUserVote(CHAPTERCURRENT); // Hàm này sẽ gọi updateChapterVoteCount
+    checkUserVote(CHAPTERCURRENT); 
     updateTotalStoryViews(STORYID);
     updateChapterView(CHAPTERCURRENT);
   }
@@ -197,14 +195,12 @@ if (VoteBtn) {
         return;
       }
 
-      // Cập nhật trạng thái nút vote
       if (data.voted) {
         VoteBtn.classList.add("clicked");
       } else {
         VoteBtn.classList.remove("clicked");
       }
 
-      // Cập nhật số lượng vote
       updateChapterVoteCount(CHAPTERCURRENT);
     } catch (err) {
       console.error("Lỗi khi vote:", err);
@@ -218,7 +214,7 @@ async function checkUserVote(chapterId) {
     const res = await fetch(`/api/chapter/${chapterId}/votes/user`);
     const data = await res.json();
 
-    const currentVoteBtn = document.getElementById("Vote"); // Lấy lại nút vote để đảm bảo chính xác
+    const currentVoteBtn = document.getElementById("Vote"); 
     if (currentVoteBtn) {
       if (data.voted) {
         currentVoteBtn.classList.add("clicked");

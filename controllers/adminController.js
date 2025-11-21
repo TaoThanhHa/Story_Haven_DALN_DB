@@ -1,4 +1,3 @@
-// controllers/adminController.js
 const User = require('../models/User'); 
 const Story = require('../models/Story'); 
 const Chapter = require('../models/Chapter'); 
@@ -7,8 +6,6 @@ const ReportedComment = require('../models/ReportedComment');
 const mongoose = require('mongoose'); 
 
 // ================= USERS =================
-
-// Lấy danh sách users với pagination + filter + search
 const getUsers = async (req, res) => {
   try {
     let { page = 1, limit = 10, search = '', role = '', status = '' } = req.query;
@@ -31,11 +28,10 @@ const getUsers = async (req, res) => {
     const users = await User.find(filter)
       .skip((page - 1) * limit)
       .limit(limit)
-      .select('username email role status createdAt') // Changed from created_at to createdAt (Mongoose default)
-      .sort({ createdAt: -1 }) // Changed from created_at to createdAt
+      .select('username email role status createdAt')
+      .sort({ createdAt: -1 })
       .lean();
 
-    // Thêm total_stories cho mỗi user (sử dụng Promise.all để tối ưu)
     const usersWithStoriesCount = await Promise.all(users.map(async (u) => {
       const total_stories = await Story.countDocuments({ userId: u._id });
       return { ...u, total_stories };
@@ -48,7 +44,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-// Lấy user theo ID
 const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -71,7 +66,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Cập nhật role/status user
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -101,7 +95,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Chỉ cập nhật status (block/unblock)
 const updateUserStatus = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -111,13 +104,11 @@ const updateUserStatus = async (req, res) => {
         return res.status(400).json({ error: 'ID người dùng không hợp lệ.' });
     }
 
-    const validStatuses = ['active', 'inactive', 'banned']; // Giả sử các trạng thái này
+    const validStatuses = ['active', 'inactive', 'banned']; 
     if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Trạng thái không hợp lệ. Phải là "active", "inactive" hoặc "banned".' });
     }
 
-    // Chặn admin tự khóa
-    // Lưu ý: req.session.user._id là ObjectId, userId là string từ params
     if (req.session.user && req.session.user._id.toString() === userId && status !== 'active') {
       return res.status(403).json({ error: 'Admin không thể tự khóa tài khoản của mình.' });
     }
@@ -134,7 +125,6 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
-// Xóa user + stories + chapters + comments (sử dụng transaction)
 const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
@@ -142,29 +132,21 @@ const deleteUser = async (req, res) => {
       return res.status(400).json({ error: 'ID người dùng không hợp lệ.' });
   }
 
-  // Ngăn admin tự xóa tài khoản của chính mình
   if (req.session.user && req.session.user._id.toString() === userId) {
     return res.status(403).json({ error: 'Admin không thể tự xóa tài khoản của mình.' });
   }
 
   try {
-    // Kiểm tra user tồn tại
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Không tìm thấy người dùng.' });
     }
 
-    // Lấy tất cả truyện của user
     const storiesToDelete = await Story.find({ userId: userId });
     const storyIds = storiesToDelete.map(s => s._id);
 
-    // Xóa tất cả chapters của truyện
     await Chapter.deleteMany({ storyId: { $in: storyIds } });
-
-    // Xóa tất cả comments do user viết
     await Comment.deleteMany({ userId: userId });
-
-    // Xóa các reported comments liên quan user
     await ReportedComment.deleteMany({
         $or: [
             { reporterUserId: userId },
@@ -172,10 +154,7 @@ const deleteUser = async (req, res) => {
         ]
     });
 
-    // Xóa tất cả stories của user
     await Story.deleteMany({ userId: userId });
-
-    // Cuối cùng, xóa user
     await User.deleteOne({ _id: userId });
 
     res.json({ message: 'Người dùng và tất cả dữ liệu liên quan đã được xóa thành công.' });
@@ -187,9 +166,6 @@ const deleteUser = async (req, res) => {
 
 
 // ================= STORIES =================
-
-// Lấy danh sách truyện với pagination + filter + search
-// GET /admin/api/stories
 function escapeRegex(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -202,12 +178,10 @@ const getStories = async (req, res) => {
 
     const andClauses = [];
 
-    // filter visibility
     if (visibility) {
       andClauses.push({ visibility });
     }
 
-    // filter category
     if (category) {
       const cats = category.split(",").map(c => c.trim()).filter(Boolean);
 
@@ -221,7 +195,6 @@ const getStories = async (req, res) => {
       }
     }
 
-    // search title hoặc author
     if (search) {
       const searchRegex = { $regex: search, $options: "i" };
       const users = await User.find({ username: searchRegex }).select("_id");
@@ -267,9 +240,6 @@ const getStories = async (req, res) => {
   }
 };
 
-// ======================
-// Lấy chi tiết truyện theo ID (Admin)
-// ======================
 const getStoryById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -305,7 +275,7 @@ const updateStoryStatus = async (req, res) => {
             return res.status(400).json({ error: 'ID truyện không hợp lệ.' });
         }
 
-        const validStatuses = ['complete', 'writing', 'blocked', 'approved', 'pending']; // Giả định các trạng thái
+        const validStatuses = ['complete', 'writing', 'blocked', 'approved', 'pending'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Trạng thái không hợp lệ được cung cấp.' });
         }
@@ -322,9 +292,6 @@ const updateStoryStatus = async (req, res) => {
     }
 };
 
-// ======================
-// Cập nhật visibility (Admin)
-// ======================
 const updateStory = async (req, res) => {
     try {
         const { id } = req.params;
@@ -344,9 +311,6 @@ const updateStory = async (req, res) => {
     }
 };
 
-// ======================
-// Xóa truyện + chương + comment + báo cáo (Admin)
-// ======================
 const deleteStory = async (req, res) => {
   const storyId = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(storyId))
@@ -363,22 +327,12 @@ const deleteStory = async (req, res) => {
   }
 };
 
-// ======================
-// Lấy danh sách thể loại duy nhất
-// ======================
-// GET /admin/api/stories/categories
 const getUniqueStoryCategories = async (req, res) => {
     try {
-        // Lấy tất cả category khác rỗng từ database
         let categories = await Story.distinct("category");
         categories = categories.filter(c => c && c.trim() !== "").sort();
 
-        // Fallback: nếu database rỗng, dùng danh sách mặc định
         const defaultCategories = [
-            "Bách hợp","Cổ đại","Cung đấu","Đam mỹ","Dị giới","Đô thị","Hài hước",
-            "Hệ thống","Hiện đại","Khoa học viễn tưởng","Kinh dị","Lịch sử","Linh dị",
-            "Mạt thế","Ngôn tình","Ngược luyến","Phiêu lưu","Quân sự","Sủng ngọt",
-            "Tâm lý","Tiên hiệp","Trinh thám","Trọng sinh","Xuyên không"
         ];
 
         if (categories.length === 0) categories = defaultCategories;
@@ -391,8 +345,6 @@ const getUniqueStoryCategories = async (req, res) => {
 };
 
 // ================= COMMENTS =================
-
-// Hàm lấy danh sách các bình luận bị báo cáo
 const getReportedComments = async (req, res) => {
     try {
         let { page = 1, limit = 10, search = '', status = 'pending', reason = '' } = req.query;
@@ -401,23 +353,21 @@ const getReportedComments = async (req, res) => {
 
         const filter = {};
         if (status) filter.status = status;
-        if (reason) filter.reportReason = reason; // Giả sử trường là reportReason
-
-        // Pipeline cho aggregate để tìm kiếm và join
+        if (reason) filter.reportReason = reason;
         const pipeline = [
             { $match: filter },
             {
                 $lookup: {
-                    from: 'comments', // Tên collection của Comments
+                    from: 'comments', 
                     localField: 'commentId',
                     foreignField: '_id',
                     as: 'commentDetails'
                 }
             },
-            { $unwind: '$commentDetails' }, // Đảm bảo commentDetails là một đối tượng
+            { $unwind: '$commentDetails' }, 
             {
                 $lookup: {
-                    from: 'users', // Tên collection của Users
+                    from: 'users',
                     localField: 'commentDetails.userId',
                     foreignField: '_id',
                     as: 'commentAuthor'
@@ -426,45 +376,44 @@ const getReportedComments = async (req, res) => {
             { $unwind: '$commentAuthor' },
             {
                 $lookup: {
-                    from: 'users', // Tên collection của Users
-                    localField: 'reporterUserId', // Giả sử có trường này
+                    from: 'users', 
+                    localField: 'reporterUserId',
                     foreignField: '_id',
                     as: 'reporterUser'
                 }
             },
             { $unwind: '$reporterUser' },
-            // Populate thêm chapter và story nếu cần
             {
                 $lookup: {
-                    from: 'chapters', // Tên collection của Chapters
+                    from: 'chapters', 
                     localField: 'commentDetails.chapterId',
                     foreignField: '_id',
                     as: 'chapterDetails'
                 }
             },
-            { $unwind: { path: '$chapterDetails', preserveNullAndEmptyArrays: true } }, // Có thể không có chapterId
+            { $unwind: { path: '$chapterDetails', preserveNullAndEmptyArrays: true } }, 
             {
                 $lookup: {
-                    from: 'stories', // Tên collection của Stories
+                    from: 'stories',
                     localField: 'chapterDetails.storyId',
                     foreignField: '_id',
                     as: 'storyDetails'
                 }
             },
-            { $unwind: { path: '$storyDetails', preserveNullAndEmptyArrays: true } }, // Có thể không có storyId
+            { $unwind: { path: '$storyDetails', preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
-                    from: 'users', // Tên collection của Users
+                    from: 'users', 
                     localField: 'commentDetails.targetUserId',
                     foreignField: '_id',
                     as: 'targetUserProfile'
                 }
             },
-            { $unwind: { path: '$targetUserProfile', preserveNullAndEmptyArrays: true } }, // Có thể không có targetUserId
+            { $unwind: { path: '$targetUserProfile', preserveNullAndEmptyArrays: true } }, 
         ];
 
         if (search) {
-            pipeline.unshift({ // Thêm $match vào đầu pipeline
+            pipeline.unshift({
                 $match: {
                     $or: [
                         { 'commentDetails.content': { $regex: search, $options: 'i' } },
@@ -476,7 +425,7 @@ const getReportedComments = async (req, res) => {
         }
 
         const totalReports = await ReportedComment.aggregate([
-            ...pipeline.filter(p => !p.$skip && !p.$limit && !p.$sort), // Lọc bỏ skip/limit/sort
+            ...pipeline.filter(p => !p.$skip && !p.$limit && !p.$sort), 
             { $count: 'total' }
         ]);
         const count = totalReports.length > 0 ? totalReports[0].total : 0;
@@ -484,22 +433,22 @@ const getReportedComments = async (req, res) => {
 
         const reportedComments = await ReportedComment.aggregate([
             ...pipeline,
-            { $sort: { reportedAt: -1 } }, // Changed from reported_at to reportedAt
+            { $sort: { reportedAt: -1 } }, 
             { $skip: (page - 1) * limit },
             { $limit: limit },
             {
                 $project: {
-                    _id: 0, // Không trả về _id của reportedComment
+                    _id: 0, 
                     reportId: '$_id',
                     commentId: '$commentDetails._id',
                     reportReason: '$reportReason',
                     reportedAt: '$reportedAt',
-                    reportStatus: '$status', // Status của reportedComment
+                    reportStatus: '$status',
                     adminId: '$adminId',
                     actionTaken: '$actionTaken',
                     processedAt: '$processedAt',
                     commentContent: '$commentDetails.content',
-                    commentStatus: '$commentDetails.status', // Status của comment
+                    commentStatus: '$commentDetails.status',
                     userId: '$commentAuthor._id',
                     commentAuthor: '$commentAuthor.username',
                     reporterUsername: '$reporterUser.username',
@@ -533,7 +482,6 @@ const getReportedComments = async (req, res) => {
     }
 };
 
-// Hàm lấy chi tiết một bình luận bị báo cáo theo ID báo cáo
 const getReportedCommentById = async (req, res) => {
     try {
         const reportId = req.params.id;
@@ -601,7 +549,7 @@ const getReportedCommentById = async (req, res) => {
             {
                 $lookup: {
                     from: 'users',
-                    localField: 'adminId', // Admin xử lý báo cáo
+                    localField: 'adminId', 
                     foreignField: '_id',
                     as: 'adminUser'
                 }
@@ -619,7 +567,7 @@ const getReportedCommentById = async (req, res) => {
                     actionTaken: '$actionTaken',
                     processedAt: '$processedAt',
                     commentContent: '$commentDetails.content',
-                    commentCreatedAt: '$commentDetails.createdAt', // Changed from created_at
+                    commentCreatedAt: '$commentDetails.createdAt',
                     commentStatus: '$commentDetails.status',
                     parentCommentId: '$commentDetails.parentCommentId',
                     userId: '$commentAuthor._id',
@@ -657,12 +605,11 @@ const getReportedCommentById = async (req, res) => {
     }
 };
 
-// Hàm cập nhật trạng thái của báo cáo bình luận
 const updateReportedCommentStatus = async (req, res) => {
     try {
         const reportId = req.params.id;
-        const { status, actionTaken } = req.body; // Changed action_taken to actionTaken
-        const adminId = req.session.user._id; // Lấy ID admin từ session (ObjectId)
+        const { status, actionTaken } = req.body; 
+        const adminId = req.session.user._id; 
 
         if (!mongoose.Types.ObjectId.isValid(reportId)) {
             return res.status(400).json({ error: 'ID báo cáo không hợp lệ.' });
@@ -675,7 +622,7 @@ const updateReportedCommentStatus = async (req, res) => {
 
         const updatedReport = await ReportedComment.findByIdAndUpdate(
             reportId,
-            { status, actionTaken, adminId, processedAt: new Date() }, // Changed processed_at to processedAt, admin_id to adminId
+            { status, actionTaken, adminId, processedAt: new Date() }, 
             { new: true, runValidators: true }
         );
 
@@ -689,7 +636,6 @@ const updateReportedCommentStatus = async (req, res) => {
     }
 };
 
-// Hàm cập nhật trạng thái của bình luận gốc (ẩn/hiển thị/xóa logic)
 const updateCommentStatus = async (req, res) => {
     try {
         const commentId = req.params.id;
@@ -715,7 +661,6 @@ const updateCommentStatus = async (req, res) => {
     }
 };
 
-// Hàm xóa bình luận gốc (và các báo cáo liên quan)
 const deleteComment = async (req, res) => {
     const commentId = req.params.id;
 
@@ -732,8 +677,8 @@ const deleteComment = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy bình luận.' });
         }
 
-        await ReportedComment.deleteMany({ commentId: commentId }).session(session); // Xóa tất cả báo cáo của bình luận này
-        await Comment.deleteOne({ _id: commentId }).session(session); // Xóa bình luận gốc
+        await ReportedComment.deleteMany({ commentId: commentId }).session(session);
+        await Comment.deleteOne({ _id: commentId }).session(session); 
 
         await session.commitTransaction();
         session.endSession();
@@ -747,7 +692,6 @@ const deleteComment = async (req, res) => {
     }
 };
 
-// Hàm xóa một báo cáo cụ thể (giữ nguyên bình luận gốc)
 const deleteReportedComment = async (req, res) => {
     try {
         const reportId = req.params.id;
@@ -768,13 +712,11 @@ const deleteReportedComment = async (req, res) => {
 };
 
 // ================= DASHBOARD STATS =================
-
 const getDashboardStats = async (req, res) => {
     try {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // Chạy song song tất cả các lệnh đếm để tiết kiệm thời gian
         const [
             totalUsers,
             totalStories,
@@ -784,12 +726,11 @@ const getDashboardStats = async (req, res) => {
             newStoriesLast7Days,
             storyCategories
         ] = await Promise.all([
-            User.countDocuments(),      // 1. Tổng user
-            Story.countDocuments(),     // 2. Tổng truyện
+            User.countDocuments(),      
+            Story.countDocuments(),  
             Comment.aggregate([
         {
             $project: {
-                // Tính tổng = 1 (chính nó) + số lượng phần tử trong mảng replies
                 totalInThisDoc: { 
                     $add: [ 1, { $size: { $ifNull: ["$replies", []] } } ] 
                 }
@@ -802,10 +743,9 @@ const getDashboardStats = async (req, res) => {
             }
         }
     ]),
-            Story.countDocuments({ status: 'pending' }), // 4. Truyện chờ duyệt
-            ReportedComment.countDocuments({ status: 'pending' }), // 5. Báo cáo chờ xử lý
+            Story.countDocuments({ status: 'pending' }), 
+            ReportedComment.countDocuments({ status: 'pending' }), 
             
-            // 6. Biểu đồ truyện mới 7 ngày
             Story.aggregate([
                 { $match: { createdAt: { $gte: sevenDaysAgo } } },
                 {
@@ -817,7 +757,6 @@ const getDashboardStats = async (req, res) => {
                 { $sort: { _id: 1 } }
             ]),
 
-            // 7. Biểu đồ thể loại
             Story.aggregate([
                 { $unwind: "$category" },
                 { $match: { category: { $ne: null, $ne: '' } } },
@@ -835,14 +774,13 @@ const getDashboardStats = async (req, res) => {
 
         const totalComments = totalCommentsData.length > 0 ? totalCommentsData[0].total : 0;
         
-        // Trả về kết quả
         res.json({
             totalUsers,
             totalStories,
             totalComments,
             pendingStories,
             pendingReports,
-            newStoriesLast7Days, // Frontend sẽ dùng mảng này để vẽ biểu đồ
+            newStoriesLast7Days, 
             storyCategories,
             adminActivities: [] 
         });
@@ -853,10 +791,7 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-
-// === EXPORT CÁC HÀM ===
 module.exports = {
-    // Cho người dùng
     getUsers,
     getUserById,
     updateUser,
@@ -866,7 +801,7 @@ module.exports = {
     // Cho truyện
     getStories,
     getStoryById,
-    updateStoryStatus, // Giữ lại nếu muốn có API cập nhật trạng thái riêng
+    updateStoryStatus, 
     updateStory,
     deleteStory,
 

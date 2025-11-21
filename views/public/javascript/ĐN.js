@@ -3,7 +3,7 @@ const loginForm = document.getElementById("loginForm");
 const errorMessage = document.getElementById("errorMessage");
 const togglePassword = document.getElementById("togglePassword");
 
-// 👁️ Toggle hiển thị mật khẩu
+// Toggle hiển thị mật khẩu
 if (togglePassword) {
 togglePassword.addEventListener("click", () => {
 const passwordField = document.getElementById("pass");
@@ -14,7 +14,7 @@ togglePassword.classList.toggle("fa-eye-slash");
 });
 }
 
-// 🧩 Xử lý đăng nhập
+// Xử lý đăng nhập
 loginForm.addEventListener("submit", async (event) => {
 event.preventDefault();
 
@@ -40,10 +40,9 @@ try {
   if (response.ok && result.success) {
     showSuccess(result.message || "Đăng nhập thành công! Đang chuyển hướng...");
     setTimeout(() => {
-      window.location.href = result.redirectUrl || "/"; // redirect dựa trên role
+      window.location.href = result.redirectUrl || "/"; 
     }, 1200);
   } else {
-    // ❌ Sai thông tin
     showError(result.error || "Email hoặc mật khẩu không chính xác!");
   }
 } catch (err) {
@@ -54,7 +53,7 @@ try {
 
 });
 
-// 🔧 Hiển thị thông báo lỗi
+// Hiển thị thông báo lỗi
 function showError(message) {
 if (!errorMessage) return;
 errorMessage.textContent = message;
@@ -62,7 +61,7 @@ errorMessage.style.color = "red";
 errorMessage.style.display = "block";
 }
 
-// 🔧 Hiển thị thông báo thành công
+// Hiển thị thông báo thành công
 function showSuccess(message) {
 if (!errorMessage) return;
 errorMessage.textContent = message;
